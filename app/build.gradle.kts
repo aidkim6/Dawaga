@@ -63,6 +63,7 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
 
+
     // 카카오맵 Vector SDK v2
     implementation("com.kakao.maps.open:android:2.12.8")
 
@@ -79,4 +80,7 @@ dependencies {
     implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
 
     implementation("com.google.firebase:firebase-firestore:25.1.1")
+
+    //멤버별 도착 현황을 목록으로 표시할 RecyclerView 라이브러리 추가
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 }
