@@ -1,9 +1,14 @@
 package com.example.dawaga.location;
 
+import android.location.Location;
+
 import java.util.Locale;
 
 /**
- * 위치 공유 규칙과 계산 모음 (안드로이드 API를 쓰지 않아 JVM 단위 테스트 가능).
+ * 위치 공유 규칙과 계산 모음.
+ *
+ * distanceMeters만 안드로이드 API(Location.distanceBetween)를 쓰므로 계측 테스트
+ * (androidTest)에서 확인하고, 나머지는 JVM 단위 테스트(test)에서 확인한다.
  *
  * - 공유 시작: 약속 10분 전부터 (기획서 v2 기능 6)
  * - 도착 판정: 약속 장소 반경 50m 이내 (기획서 v2 기능 9)
@@ -23,20 +28,14 @@ public final class LocationRules {
     /** 오차가 이보다 큰 좌표는 버린다(m). 대략적 위치만 허용된 경우 등 */
     public static final float MAX_ACCURACY_M = 100f;
 
-    private static final double EARTH_RADIUS_M = 6_371_000.0;
-
     private LocationRules() {
     }
 
-    /** 두 좌표 사이 직선거리(m). 하버사인 공식 */
+    /** 두 좌표 사이 직선거리(m). Location.distanceBetween (WGS84 타원체 기준) */
     public static double distanceMeters(double lat1, double lng1, double lat2, double lng2) {
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLng = Math.toRadians(lng2 - lng1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return EARTH_RADIUS_M * c;
+        float[] result = new float[1];
+        Location.distanceBetween(lat1, lng1, lat2, lng2, result);
+        return result[0];
     }
 
     /** 남은 거리로 추정 소요 시간(분, 올림). 도착 반경 안이면 0 */
