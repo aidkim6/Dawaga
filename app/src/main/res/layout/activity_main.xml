@@ -6,19 +6,121 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <!-- 카카오맵 뷰 (지도가 화면의 남은 공간을 모두 차지하도록 layout_weight 부여) -->
+    <!-- 카카오맵 뷰 -->
     <com.kakao.vectormap.MapView
         android:id="@+id/map_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- 하단 테스트 버튼 영역 (LinearLayout 활용) -->
+    <!-- 소연님 계정 및 방 관리 UI 영역 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tv_soyeon_auth_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="익명 로그인 상태: 확인 중..."
+            android:textColor="#388E3C"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_soyeon_user_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="저장된 계정: 없음"
+            android:textColor="#1976D2"
+            android:textStyle="bold" />
+
+        <!-- 수정됨: minHeight="48dp" 추가 -->
+        <EditText
+            android:id="@+id/et_soyeon_nickname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:hint="닉네임 입력"
+            android:inputType="text"
+            android:autofillHints="username" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_soyeon_register"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="1. 닉네임 등록" />
+
+            <Button
+                android:id="@+id/btn_soyeon_rename"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="2. 닉네임 수정" />
+        </LinearLayout>
+
+        <!-- 수정됨: minHeight="48dp" 추가 -->
+        <EditText
+            android:id="@+id/et_soyeon_room_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:hint="방 코드 6자리"
+            android:inputType="text"
+            android:autofillHints="postalCode" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_soyeon_create_room"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="3. 방 생성 (createRoom)" />
+
+            <Button
+                android:id="@+id/btn_soyeon_join_room"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="4. 방 코드 검증" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_soyeon_timer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="타이머 대기 중"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp" />
+
+        <Button
+            android:id="@+id/btn_soyeon_fast_timer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="5. [시연용] 5초 카운트다운, 화면 전환" />
+
+    </LinearLayout>
+
+    <!-- 하단 테스트 버튼 영역 (방 생성 및 시뮬레이터 이동) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="12dp"
         android:background="#FFFFFF">
 
         <Button
