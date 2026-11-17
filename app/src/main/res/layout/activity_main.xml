@@ -1,14 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
     <!-- 카카오맵 뷰 -->
     <com.kakao.vectormap.MapView
         android:id="@+id/map_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="200dp" />
+    <TextView
+        android:id="@+id/tv_soyeon_auth_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="익명 로그인 상태: 확인 중..."
+        android:textColor="#388E3C"
+        android:textSize="13sp"
+        android:textStyle="bold" />
 
-</FrameLayout>
+    <TextView
+        android:id="@+id/tv_soyeon_user_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="저장된 계정: 없음"
+        android:textColor="#1976D2"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/et_soyeon_nickname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="닉네임 입력" />
+
+
+    <Button
+        android:id="@+id/btn_soyeon_register"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="1. 닉네임 등록" />
+
+    <Button
+        android:id="@+id/btn_soyeon_rename"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2. 닉네임 수정" />
+
+    <!-- 2. 방 코드 생성/검증 -->
+    <EditText
+        android:id="@+id/et_soyeon_room_code"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="방 코드 6자리" />
+    <Button
+        android:id="@+id/btn_soyeon_create_room"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="3. 방 코드 생성 (createRoom)" />
+
+    <Button
+        android:id="@+id/btn_soyeon_join_room"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="4. 방 코드 검증" />
+
+    <!-- 3. 10분 전 타이머 & 자동 화면 전환 -->
+    <TextView
+        android:id="@+id/tv_soyeon_timer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="타이머 대기 중 (방 검증 시 약속 10분 전 계산)"
+        android:textStyle="bold" />
+    <Button
+        android:id="@+id/btn_soyeon_fast_timer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="5. [시연용] 5초 카운트다운 &amp; 자동 화면 전환" />
+
+</LinearLayout>
