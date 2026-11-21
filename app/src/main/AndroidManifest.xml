@@ -37,6 +37,13 @@
         <activity
             android:name=".ArrivalStatusActivity"
             android:exported="true" />
+        <activity
+            android:name=".CreatePromiseActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PromiseWaitingActivity"
+            android:exported="false" />
     </application>
+
 
 </manifest>

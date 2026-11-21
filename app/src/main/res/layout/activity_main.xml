@@ -17,7 +17,7 @@
         android:paddingEnd="20dp"
         android:paddingBottom="28dp">
 
-        <!-- 상단 타이틀 영역 -->
+        <!-- 상단 타이틀 -->
         <TextView
             android:id="@+id/tv_home_title"
             android:layout_width="wrap_content"
@@ -157,111 +157,43 @@
             android:textSize="17sp"
             android:textStyle="bold" />
 
-        <!-- 참여 중인 약속 카드 1: 스터디 모임 -->
+        <!-- 약속이 하나도 없을 때 표시되는 빈 상태 카드 -->
         <LinearLayout
-            android:id="@+id/card_promise_study"
+            android:id="@+id/card_empty_promise"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:background="@drawable/bg_home_card"
-            android:clickable="true"
-            android:focusable="true"
-            android:minHeight="48dp"
+            android:gravity="center"
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
-            android:paddingVertical="18dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tv_promise_title_1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="스터디 모임"
-                    android:textColor="#0F172A"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_promise_badge_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_badge_soft_blue"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="6dp"
-                    android:text="대기 중"
-                    android:textColor="#475569"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            android:paddingVertical="28dp">
 
             <TextView
-                android:id="@+id/tv_promise_meta_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="오늘 19:00 · 성신여대 정문"
-                android:textColor="#64748B"
+                android:text="아직 참여 중인 약속이 없어요"
+                android:textColor="#475569"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="위에서 새 약속을 만들거나 초대 코드로 참여해 보세요"
+                android:textColor="#94A3B8"
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- 참여 중인 약속 카드 2: 저녁 약속 -->
+        <!-- 약속 생성/참여 후 동적으로 카드가 추가되는 영역 -->
         <LinearLayout
-            android:id="@+id/card_promise_dinner"
+            android:id="@+id/layout_active_promise_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:background="@drawable/bg_home_card"
-            android:clickable="true"
-            android:focusable="true"
-            android:minHeight="48dp"
             android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingVertical="18dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tv_promise_title_2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="저녁 약속"
-                    android:textColor="#0F172A"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_promise_badge_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_badge_soft_blue"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="6dp"
-                    android:text="예정"
-                    android:textColor="#475569"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tv_promise_meta_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="내일 18:30 · 강남역 11번 출구"
-                android:textColor="#64748B"
-                android:textSize="13sp" />
-        </LinearLayout>
+            android:visibility="gone" />
 
         <!-- 하단 지난 약속 보기 링크 -->
         <TextView
@@ -279,7 +211,7 @@
             android:textColor="#64748B"
             android:textSize="14sp" />
 
-        <!-- 개발/테스트용 숨김 영역: 기존 기능 연결 시 필요에 따라 visibility="visible"로 전환 -->
+        <!-- 기존 팀원 테스트 ID 보존 영역 -->
         <LinearLayout
             android:id="@+id/layout_dev_controls"
             android:layout_width="match_parent"
