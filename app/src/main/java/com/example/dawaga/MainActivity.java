@@ -3,14 +3,20 @@ package com.example.dawaga;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -45,6 +51,28 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView tvAuthStatus, tvUserInfo, tvTimer;
     private EditText etNickname, etRoomCode;
+
+    // [추가] 홈 화면 약속 카드 영역
+    private LinearLayout cardEmptyPromise;
+    private LinearLayout layoutActivePromiseList;
+
+    // [추가] 약속 만들기 화면 결과 수신 런처
+    private final ActivityResultLauncher<Intent> createPromiseLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                            Intent data = result.getData();
+                            String title = data.getStringExtra("promise_title");
+                            String date = data.getStringExtra("promise_date");
+                            String time = data.getStringExtra("promise_time");
+                            String place = data.getStringExtra("promise_place");
+                            String roomCode = data.getStringExtra("room_code");
+
+                            addActivePromiseCard(title, date, time, place, roomCode);
+                        }
+                    }
+            );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,8 +151,112 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        // [추가] 홈 화면 약속 만들기 이동 연결
+        initHomePromiseFlow();
+
         // 5. [소연 파트] 계정 & 타이머 기능 초기화 호출
         initSoyeonAccountAndTimer();
+    }
+
+    // [추가] 홈 화면 빈 상태 초기화 및 '새로운 약속 만들기' 화면 연결
+    private void initHomePromiseFlow() {
+        cardEmptyPromise = findViewById(R.id.card_empty_promise);
+        layoutActivePromiseList = findViewById(R.id.layout_active_promise_list);
+
+        if (cardEmptyPromise != null && layoutActivePromiseList != null) {
+            if (layoutActivePromiseList.getChildCount() == 0) {
+                cardEmptyPromise.setVisibility(View.VISIBLE);
+                layoutActivePromiseList.setVisibility(View.GONE);
+            }
+        }
+
+        LinearLayout cardCreatePromise = findViewById(R.id.card_create_promise);
+        if (cardCreatePromise != null) {
+            cardCreatePromise.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, CreatePromiseActivity.class);
+                createPromiseLauncher.launch(intent);
+            });
+        }
+    }
+
+    // [추가] 생성/참여된 약속 카드를 홈 화면 '참여 중인 약속'에 추가
+    private void addActivePromiseCard(String title, String date, String time, String place, String roomCode) {
+        if (cardEmptyPromise != null) {
+            cardEmptyPromise.setVisibility(View.GONE);
+        }
+        if (layoutActivePromiseList == null) {
+            return;
+        }
+        layoutActivePromiseList.setVisibility(View.VISIBLE);
+
+        float density = getResources().getDisplayMetrics().density;
+        int padH = (int) (20 * density);
+        int padV = (int) (18 * density);
+        int marginBottom = (int) (12 * density);
+
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackgroundResource(R.drawable.bg_home_card);
+        card.setPadding(padH, padV, padH, padV);
+        card.setClickable(true);
+        card.setFocusable(true);
+
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        cardParams.bottomMargin = marginBottom;
+        card.setLayoutParams(cardParams);
+
+        LinearLayout topRow = new LinearLayout(this);
+        topRow.setOrientation(LinearLayout.HORIZONTAL);
+        topRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText(title);
+        tvTitle.setTextSize(16f);
+        tvTitle.setTextColor(Color.parseColor("#0F172A"));
+        tvTitle.setTypeface(null, Typeface.BOLD);
+        tvTitle.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView tvBadge = new TextView(this);
+        tvBadge.setText("대기 중");
+        tvBadge.setTextSize(12f);
+        tvBadge.setTextColor(Color.parseColor("#475569"));
+        tvBadge.setTypeface(null, Typeface.BOLD);
+        tvBadge.setBackgroundResource(R.drawable.bg_badge_soft_blue);
+        tvBadge.setPadding((int) (14 * density), (int) (6 * density),
+                (int) (14 * density), (int) (6 * density));
+
+        topRow.addView(tvTitle);
+        topRow.addView(tvBadge);
+
+        TextView tvMeta = new TextView(this);
+        tvMeta.setText(date + " " + time + " · " + place);
+        tvMeta.setTextSize(13f);
+        tvMeta.setTextColor(Color.parseColor("#64748B"));
+        LinearLayout.LayoutParams metaParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        metaParams.topMargin = (int) (8 * density);
+        tvMeta.setLayoutParams(metaParams);
+
+        card.addView(topRow);
+        card.addView(tvMeta);
+
+        card.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, PromiseWaitingActivity.class);
+            intent.putExtra("promise_title", title);
+            intent.putExtra("promise_date", date);
+            intent.putExtra("promise_time", time);
+            intent.putExtra("promise_place", place);
+            intent.putExtra("room_code", roomCode);
+            startActivity(intent);
+        });
+
+        layoutActivePromiseList.addView(card, 0);
     }
 
     // 방 멤버 실시간 수신 리스너 등록 메서드
