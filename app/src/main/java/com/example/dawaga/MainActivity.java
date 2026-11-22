@@ -70,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
                             String roomCode = data.getStringExtra("room_code");
 
                             addActivePromiseCard(title, date, time, place, roomCode);
+                            if (data.getBooleanExtra("open_waiting", false)) {
+                                openPromiseWaiting(data);
+                            }
                         }
                     }
             );
@@ -160,6 +163,8 @@ public class MainActivity extends AppCompatActivity {
 
     // [추가] 홈 화면 빈 상태 초기화 및 '새로운 약속 만들기' 화면 연결
     private void initHomePromiseFlow() {
+        findViewById(R.id.card_hero_nickname).setOnClickListener(
+                v -> startActivity(new Intent(this, ProfileActivity.class)));
         cardEmptyPromise = findViewById(R.id.card_empty_promise);
         layoutActivePromiseList = findViewById(R.id.layout_active_promise_list);
 
@@ -177,6 +182,10 @@ public class MainActivity extends AppCompatActivity {
                 createPromiseLauncher.launch(intent);
             });
         }
+    }
+
+    private void openPromiseWaiting(Intent data) {
+        startActivity(new Intent(this, PromiseWaitingActivity.class).putExtras(data));
     }
 
     // [추가] 생성/참여된 약속 카드를 홈 화면 '참여 중인 약속'에 추가
@@ -414,11 +423,11 @@ public class MainActivity extends AppCompatActivity {
         String savedNickname = prefs.getString("nickname", null);
         if (savedUserId != null && savedNickname != null) {
             if (tvAuthStatus != null) tvAuthStatus.setText("익명 로그인 상태: 인증됨 (" + savedUserId + ")");
-            if (tvUserInfo != null) tvUserInfo.setText("저장된 계정: " + savedNickname);
+            if (tvUserInfo != null) tvUserInfo.setText(savedNickname);
             if (etNickname != null) etNickname.setText(savedNickname);
         } else {
             if (tvAuthStatus != null) tvAuthStatus.setText("익명 로그인 상태: 미등록");
-            if (tvUserInfo != null) tvUserInfo.setText("저장된 계정: 없음");
+            if (tvUserInfo != null) tvUserInfo.setText("내 닉네임");
         }
     }
 
@@ -465,6 +474,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (prefs != null) loadSavedUserProfile();
         if (mapView != null) mapView.resume();
     }
 

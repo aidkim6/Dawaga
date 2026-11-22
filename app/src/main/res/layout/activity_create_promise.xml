@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F7FB"
+    android:background="#F3F6FB"
     tools:context=".CreatePromiseActivity">
 
     <!-- 하단 고정 버튼 -->
@@ -14,7 +14,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginHorizontal="20dp"
         android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_primary_button"
+        android:background="@drawable/bg_setup_button"
         android:backgroundTint="@null"
         android:stateListAnimator="@null"
         android:text="다음: 장소 선택"
@@ -74,7 +74,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="72dp"
                 android:text="약속 이름"
                 android:textColor="#0F172A"
                 android:textSize="15sp"

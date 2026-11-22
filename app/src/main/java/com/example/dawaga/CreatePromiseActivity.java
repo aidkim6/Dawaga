@@ -1,6 +1,5 @@
 package com.example.dawaga;
 
-import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -14,10 +13,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Random;
 
 public class CreatePromiseActivity extends AppCompatActivity {
 
@@ -27,6 +27,14 @@ public class CreatePromiseActivity extends AppCompatActivity {
 
     private String selectedDateStr = "";
     private String selectedTimeStr = "";
+    private final Calendar meeting = Calendar.getInstance();
+    private final ActivityResultLauncher<Intent> setupLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    setResult(RESULT_OK, result.getData());
+                    finish();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +48,13 @@ public class CreatePromiseActivity extends AppCompatActivity {
         tvSelectedDate = findViewById(R.id.tv_selected_date);
         tvSelectedTime = findViewById(R.id.tv_selected_time);
         Button btnNextPlace = findViewById(R.id.btn_next_place);
+        if (savedInstanceState != null) {
+            selectedDateStr = savedInstanceState.getString("date", "");
+            selectedTimeStr = savedInstanceState.getString("time", "");
+            meeting.setTimeInMillis(savedInstanceState.getLong("meeting"));
+            if (!selectedDateStr.isEmpty()) tvSelectedDate.setText(selectedDateStr);
+            if (!selectedTimeStr.isEmpty()) tvSelectedTime.setText(selectedTimeStr);
+        }
 
         // 좌측 상단 '<' 화살표 클릭 시 이전 화면(홈)으로 복귀
         btnBack.setOnClickListener(v -> finish());
@@ -54,13 +69,22 @@ public class CreatePromiseActivity extends AppCompatActivity {
         btnNextPlace.setOnClickListener(v -> handleNextPlaceStep());
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putString("date", selectedDateStr);
+        state.putString("time", selectedTimeStr);
+        state.putLong("meeting", meeting.getTimeInMillis());
+    }
+
     private void showDatePicker() {
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = meeting;
         DatePickerDialog dialog = new DatePickerDialog(
                 this,
                 (view, year, month, dayOfMonth) -> {
                     Calendar picked = Calendar.getInstance();
                     picked.set(year, month, dayOfMonth);
+                    meeting.set(year, month, dayOfMonth);
                     String[] dayNames = {"일", "월", "화", "수", "목", "금", "토"};
                     String dayOfWeek = dayNames[picked.get(Calendar.DAY_OF_WEEK) - 1];
 
@@ -79,11 +103,13 @@ public class CreatePromiseActivity extends AppCompatActivity {
     }
 
     private void showTimePicker() {
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = meeting;
         TimePickerDialog dialog = new TimePickerDialog(
                 this,
                 android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
                 (view, hourOfDay, minute) -> {
+                    meeting.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                    meeting.set(Calendar.MINUTE, minute);
                     selectedTimeStr = String.format(Locale.KOREA, "%02d:%02d", hourOfDay, minute);
                     tvSelectedTime.setText(selectedTimeStr);
                     tvSelectedTime.setTextColor(Color.parseColor("#0F172A"));
@@ -113,44 +139,12 @@ public class CreatePromiseActivity extends AppCompatActivity {
             return;
         }
 
-        // 장소 선택 화면이 연동되기 전까지 장소명을 입력받아 약속 생성을 완료하는 다이얼로그
-        // (추후 장소 선택 Activity가 완성되면 해당 Activity로 Intent 연결)
-        EditText etPlaceInput = new EditText(this);
-        etPlaceInput.setHint("예: 성신여대 정문");
-        int pad = (int) (20 * getResources().getDisplayMetrics().density);
-        etPlaceInput.setPadding(pad, pad / 2, pad, pad / 2);
-
-        new AlertDialog.Builder(this)
-                .setTitle("약속 장소 입력")
-                .setMessage("만날 장소를 입력하면 약속이 생성됩니다.")
-                .setView(etPlaceInput)
-                .setPositiveButton("약속 생성 완료", (dialog, which) -> {
-                    String place = etPlaceInput.getText().toString().trim();
-                    if (place.isEmpty()) {
-                        place = "장소 미정";
-                    }
-                    String roomCode = generateRoomCode();
-
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("promise_title", title);
-                    resultIntent.putExtra("promise_date", selectedDateStr);
-                    resultIntent.putExtra("promise_time", selectedTimeStr);
-                    resultIntent.putExtra("promise_place", place);
-                    resultIntent.putExtra("room_code", roomCode);
-                    setResult(RESULT_OK, resultIntent);
-                    finish();
-                })
-                .setNegativeButton("취소", null)
-                .show();
-    }
-
-    private String generateRoomCode() {
-        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder(6);
-        for (int i = 0; i < 6; i++) {
-            sb.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return sb.toString();
+        meeting.set(Calendar.SECOND, 0);
+        meeting.set(Calendar.MILLISECOND, 0);
+        setupLauncher.launch(new Intent(this, PromiseSetupActivity.class)
+                .putExtra("promise_title", title)
+                .putExtra("promise_date", selectedDateStr)
+                .putExtra("promise_time", selectedTimeStr)
+                .putExtra("meet_time", meeting.getTimeInMillis()));
     }
 }
