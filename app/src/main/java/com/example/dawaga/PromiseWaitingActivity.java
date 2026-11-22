@@ -3,10 +3,15 @@ package com.example.dawaga;
 import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -67,11 +72,23 @@ public class PromiseWaitingActivity extends AppCompatActivity {
         // 좌측 상단 '<' 화살표 클릭 시 이전 화면(홈)으로 복귀
         btnBack.setOnClickListener(v -> finish());
 
-        // 우측 상단 '•••' 클릭 시 초대 코드 안내
-        btnMore.setOnClickListener(v -> showPromiseDetailDialog());
+        btnMore.setOnClickListener(this::showSettings);
 
         // 하단 '약속 정보 확인' 버튼 클릭
         btnConfirmInfo.setOnClickListener(v -> showPromiseDetailDialog());
+    }
+
+    private void showSettings(View anchor) {
+        View content = getLayoutInflater().inflate(R.layout.popup_promise_settings, null);
+        int width = Math.round(220 * getResources().getDisplayMetrics().density);
+        PopupWindow popup = new PopupWindow(content, width, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popup.setOutsideTouchable(true);
+        content.findViewById(R.id.btn_copy_promise_code).setOnClickListener(v -> {
+            PromiseSetupActivity.copyCode(this, roomCode);
+            popup.dismiss();
+        });
+        popup.showAsDropDown(anchor, 0, 0, Gravity.END);
     }
 
     /**
