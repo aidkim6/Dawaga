@@ -4,30 +4,30 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-import com.example.dawaga.LocationStompManager;
+import com.example.dawaga.DawagaFirebaseManager;
 
 /**
  * 약속 하나에 대한 내 위치 공유.
- * 위치를 받을 때마다 남은 거리를 계산해 STOMP로 보내고, 50m 안에 들어오면
- * arrived=true를 한 번 보낸 뒤 수집을 멈춘다.
+ * 위치를 받을 때마다 남은 거리를 계산해 Firestore(rooms/{방코드}/members/{userId})에 올리고,
+ * 50m 안에 들어오면 도착(status=ARRIVED)으로 올린 뒤 수집을 멈춘다.
  *
- * STOMP 연결(connect, disconnect)은 화면이 관리한다. 내가 도착한 뒤에도
- * 다른 사람 위치는 계속 받아야 하기 때문이다. 이 클래스는 보내기만 한다.
+ * 다른 사람 위치 수신과 목록 표시는 ArrivalStatusActivity(listenRoomMembers)와
+ * MemberStatusAdapter가 맡는다. 이 클래스는 내 위치를 올리기만 한다.
  *
- * 사용 예 (도착 현황 화면):
+ * 사용 예 (ArrivalStatusActivity):
  * <pre>
  * // onCreate
- * stompManager = new LocationStompManager();
- * session = new LocationShareSession(this, stompManager,
- *         myUserId, myNickname, destLat, destLng, listener);
+ * permissionHelper = new LocationPermissionHelper(this);
+ * shareSession = new LocationShareSession(this, firebaseManager,
+ *         roomCode, myUserId, myNickname, destinationLat, destinationLng, listener);
  *
  * // onResume
- * stompManager.connect(roomCode, location -> { 하단 리스트 갱신 });
- * if (LocationRules.isShareWindow(System.currentTimeMillis(), meetTime)) session.start();
+ * if (LocationRules.isShareWindow(System.currentTimeMillis(), meetTime)) {
+ *     permissionHelper.request((granted, precise) -> { if (granted) shareSession.start(); });
+ * }
  *
  * // onPause
- * session.stop();
- * stompManager.disconnect();
+ * shareSession.stop();
  * </pre>
  */
 public class LocationShareSession {
@@ -44,7 +44,8 @@ public class LocationShareSession {
     }
 
     private final LocationTracker tracker;
-    private final LocationStompManager stompManager;
+    private final DawagaFirebaseManager firebaseManager;
+    private final String roomCode;
     private final String userId;
     private final String nickname;
     private final double destLat;
@@ -53,25 +54,29 @@ public class LocationShareSession {
     private boolean arrived;
 
     public LocationShareSession(@NonNull Context context,
-                                @NonNull LocationStompManager stompManager,
+                                @NonNull DawagaFirebaseManager firebaseManager,
+                                @NonNull String roomCode,
                                 @NonNull String userId,
                                 @NonNull String nickname,
                                 double destLat,
                                 double destLng,
                                 @NonNull Listener listener) {
-        this(new LocationTracker(context), stompManager, userId, nickname, destLat, destLng, listener);
+        this(new LocationTracker(context), firebaseManager, roomCode, userId, nickname,
+                destLat, destLng, listener);
     }
 
     /** 테스트나 수집 주기를 바꿀 때 트래커를 직접 넘긴다 */
     public LocationShareSession(@NonNull LocationTracker tracker,
-                                @NonNull LocationStompManager stompManager,
+                                @NonNull DawagaFirebaseManager firebaseManager,
+                                @NonNull String roomCode,
                                 @NonNull String userId,
                                 @NonNull String nickname,
                                 double destLat,
                                 double destLng,
                                 @NonNull Listener listener) {
         this.tracker = tracker;
-        this.stompManager = stompManager;
+        this.firebaseManager = firebaseManager;
+        this.roomCode = roomCode;
         this.userId = userId;
         this.nickname = nickname;
         this.destLat = destLat;
@@ -106,11 +111,10 @@ public class LocationShareSession {
         double distanceM = LocationRules.distanceMeters(lat, lng, destLat, destLng);
         boolean nowArrived = LocationRules.isArrived(distanceM);
 
-        stompManager.sendMyLocation(new MemberLocation(
-                userId, nickname, lat, lng, nowArrived, System.currentTimeMillis()));
+        // 네트워크가 끊겨 있어도 Firestore SDK가 쓰기를 기기에 보관했다가 연결되면 올린다
+        firebaseManager.updateMyLocation(roomCode, userId, nickname, lat, lng, nowArrived);
 
         if (nowArrived) {
-            // 연결이 끊긴 순간이어도 LocationStompManager가 들고 있다가 재연결 때 보낸다
             arrived = true;
             tracker.stop();
             listener.onMyProgress(distanceM, 0);

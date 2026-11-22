@@ -43,6 +43,17 @@
         <activity
             android:name=".PromiseWaitingActivity"
             android:exported="false" />
+
+        <!-- 위치 공유 화면 (location 패키지) -->
+        <activity
+            android:name=".location.LocationShareWaitingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".location.LocationPermissionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".location.LocationErrorActivity"
+            android:exported="false" />
     </application>
 
 
