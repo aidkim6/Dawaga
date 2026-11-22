@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F4F7FB"
+    tools:context=".PromiseWaitingActivity">
+
+    <!-- 하단 고정 영역: 안내 문구 + 약속 정보 확인 버튼 -->
+    <LinearLayout
+        android:id="@+id/layout_waiting_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="14dp"
+            android:text="약속 10분 전부터 위치 공유가 시작돼요."
+            android:textColor="#64748B"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btn_confirm_promise_info"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_primary_button"
+            android:backgroundTint="@null"
+            android:stateListAnimator="@null"
+            android:text="약속 정보 확인"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/layout_waiting_bottom"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="20dp">
+
+            <!-- 상단 헤더: < 약속 대기실 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btn_back_waiting"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="-12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="뒤로 가기"
+                    android:src="@drawable/ic_arrow_back" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="약속 대기실"
+                    android:textColor="#0F172A"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="약속 시작 전까지 참여자와 장소를 확인해요."
+                android:textColor="#475569"
+                android:textSize="14sp" />
+
+            <!-- 약속 요약 정보 카드 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_home_card"
+                android:orientation="vertical"
+                android:padding="22dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_waiting_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="약속 이름"
+                        android:textColor="#0F172A"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btn_waiting_more"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:minWidth="48dp"
+                        android:minHeight="48dp"
+                        android:gravity="center"
+                        android:text="•••"
+                        android:textColor="#334155"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_waiting_datetime_place"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="날짜 시간 · 장소"
+                    android:textColor="#64748B"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tv_waiting_status_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_badge_soft_blue"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="7dp"
+                    android:text="대기 중"
+                    android:textColor="#475569"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 참여자 N명 헤더 -->
+            <TextView
+                android:id="@+id/tv_participant_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="참여자 1명"
+                android:textColor="#0F172A"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- 참여자 리스트 동적 컨테이너 -->
+            <LinearLayout
+                android:id="@+id/layout_participant_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
