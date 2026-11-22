@@ -12,7 +12,7 @@ import java.util.Locale;
  *
  * - 공유 시작: 약속 10분 전부터 (기획서 v2 기능 6)
  * - 도착 판정: 약속 장소 반경 50m 이내 (기획서 v2 기능 9)
- * - 추정 시간: 도보 시속 4km(분당 약 67m) 기준 직선거리로 계산 (팀 확정 전 임시값)
+ * - 추정 시간: 도보 분당 80m(시속 4.8km) 기준 직선거리로 계산 (MemberStatusAdapter와 같은 값)
  */
 public final class LocationRules {
 
@@ -22,8 +22,8 @@ public final class LocationRules {
     /** 이 거리(m) 안으로 들어오면 도착 */
     public static final double ARRIVAL_RADIUS_M = 50.0;
 
-    /** 추정 시간 계산용 도보 속도(m/분). 시속 4km */
-    public static final double WALKING_METERS_PER_MIN = 4000.0 / 60.0;
+    /** 추정 시간 계산용 도보 속도(m/분). 도착 현황 목록(MemberStatusAdapter)과 맞춤 */
+    public static final double WALKING_METERS_PER_MIN = 80.0;
 
     /** 오차가 이보다 큰 좌표는 버린다(m). 대략적 위치만 허용된 경우 등 */
     public static final float MAX_ACCURACY_M = 100f;

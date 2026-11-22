@@ -20,11 +20,12 @@ public class LocationRulesTest {
     }
 
     @Test
-    public void 추정시간은_분당_약_67m_올림() {
+    public void 추정시간은_분당_80m_올림() {
         assertEquals(0, LocationRules.estimateMinutes(30));
         assertEquals(1, LocationRules.estimateMinutes(60));
-        assertEquals(2, LocationRules.estimateMinutes(70));
-        assertEquals(15, LocationRules.estimateMinutes(1000));
+        assertEquals(2, LocationRules.estimateMinutes(90));
+        assertEquals(10, LocationRules.estimateMinutes(800));
+        assertEquals(13, LocationRules.estimateMinutes(1000));
     }
 
     @Test
