@@ -1,6 +1,8 @@
 
 package com.example.dawaga;
 
+import static android.content.Intent.getIntent;
+
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -68,6 +70,12 @@ public class ArrivalStatusActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_arrival_status);
 
+
+        // 뒤로가기 버튼
+        findViewById(R.id.btn_back).setOnClickListener(v -> {
+            mapView.finish();
+        });
+
         // 3. 지도 연결
         mapView = findViewById(R.id.arrival_map_view);
 
@@ -79,9 +87,18 @@ public class ArrivalStatusActivity extends AppCompatActivity {
                 new LinearLayoutManager(this)
         );
 
+
+// 내 정보 가져오기
+        android.content.SharedPreferences prefs =
+                getSharedPreferences("DawagaPrefs", MODE_PRIVATE);
+
+        String myUserId = prefs.getString("userId", null);
+
+// 친구 목록 Adapter 연결
         adapter = new MemberStatusAdapter(
                 destinationLat,
-                destinationLng
+                destinationLng,
+                myUserId
         );
 
         recyclerView.setAdapter(adapter);
