@@ -14,7 +14,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginHorizontal="20dp"
         android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_setup_button"
+        android:background="@drawable/bg_primary_button"
         android:backgroundTint="@null"
         android:stateListAnimator="@null"
         android:text="다음: 장소 선택"
