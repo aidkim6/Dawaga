@@ -77,6 +77,27 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
 
+    // [추가] 초대 코드로 참여 화면 결과 수신 런처
+    private final ActivityResultLauncher<Intent> joinPromiseLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                            Intent data = result.getData();
+                            String title = data.getStringExtra("promise_title");
+                            String date = data.getStringExtra("promise_date");
+                            String time = data.getStringExtra("promise_time");
+                            String place = data.getStringExtra("promise_place");
+                            String roomCode = data.getStringExtra("room_code");
+
+                            addActivePromiseCard(title, date, time, place, roomCode);
+                            if (data.getBooleanExtra("open_waiting", false)) {
+                                openPromiseWaiting(data);
+                            }
+                        }
+                    }
+            );
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -180,6 +201,14 @@ public class MainActivity extends AppCompatActivity {
             cardCreatePromise.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, CreatePromiseActivity.class);
                 createPromiseLauncher.launch(intent);
+            });
+        }
+
+        LinearLayout cardJoinPromise = findViewById(R.id.card_join_by_code);
+        if (cardJoinPromise != null) {
+            cardJoinPromise.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, JoinPromiseActivity.class);
+                joinPromiseLauncher.launch(intent);
             });
         }
     }

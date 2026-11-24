@@ -56,6 +56,9 @@
         <activity
             android:name=".PromiseWaitingActivity"
             android:exported="false" />
+        <activity
+            android:name=".JoinPromiseActivity"
+            android:exported="false" />
 
         <!-- 위치 공유 화면 (location 패키지) -->
         <activity
