@@ -5,56 +5,63 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:background="#F5F5F5">
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_arrival_card">
 
-    <!-- 도착 순위 -->
+    <!-- 순위 -->
     <TextView
         android:id="@+id/tv_rank"
-        android:layout_width="40dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1"
-        android:textSize="20sp"
-        android:textStyle="bold"
+        android:text="1."
+        android:textSize="16sp"
         android:textColor="#333333"
-        android:gravity="center" />
+        android:textStyle="bold" />
 
-    <!-- 닉네임과 거리 -->
-    <LinearLayout
+    <!-- 닉네임 -->
+    <TextView
+        android:id="@+id/tv_nickname"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:layout_marginStart="12dp">
+        android:layout_marginStart="10dp"
+        android:text="지민"
+        android:textSize="16sp"
+        android:textColor="#333333"
+        android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tv_nickname"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="김지원"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#222222" />
+    <!-- 거리와 예상 시간 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/tv_distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="350m"
-            android:textSize="13sp"
-            android:textColor="#777777"
-            android:layout_marginTop="4dp" />
+            android:text="120m"
+            android:textSize="14sp"
+            android:textColor="#777777" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:text="·"
+            android:textSize="14sp"
+            android:textColor="#999999" />
+
+        <TextView
+            android:id="@+id/tv_arrival_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2분"
+            android:textSize="14sp"
+            android:textColor="#777777" />
 
     </LinearLayout>
-
-    <!-- 예상 시간 또는 도착 상태 -->
-    <TextView
-        android:id="@+id/tv_arrival_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="약 4분"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="#3366CC" />
 
 </LinearLayout>
