@@ -3,16 +3,22 @@ package com.example.dawaga;
 import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PromiseWaitingActivity extends AppCompatActivity {
 
@@ -26,10 +32,14 @@ public class PromiseWaitingActivity extends AppCompatActivity {
     private String place;
     private String roomCode;
 
+    private DawagaFirebaseManager firebaseManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_promise_waiting);
+
+        firebaseManager = new DawagaFirebaseManager();
 
         ImageButton btnBack = findViewById(R.id.btn_back_waiting);
         TextView tvTitle = findViewById(R.id.tv_waiting_title);
@@ -39,7 +49,7 @@ public class PromiseWaitingActivity extends AppCompatActivity {
         Button btnConfirmInfo = findViewById(R.id.btn_confirm_promise_info);
         TextView btnMore = findViewById(R.id.btn_waiting_more);
 
-        // 홈 화면 카드에서 전달받은 약속 데이터 세팅
+        // 홈 화면 카드 또는 참여 확인 화면에서 전달받은 약속 데이터 세팅
         title = getIntent().getStringExtra("promise_title");
         date = getIntent().getStringExtra("promise_date");
         time = getIntent().getStringExtra("promise_time");
@@ -55,7 +65,7 @@ public class PromiseWaitingActivity extends AppCompatActivity {
         tvTitle.setText(title);
         tvDatetimePlace.setText(date + " " + time + " · " + place);
 
-        // 처음 방 생성 시에는 나(방장) 1명으로 시작
+        // 초기 참여자 목록 세팅
         ArrayList<String> incomingMembers = getIntent().getStringArrayListExtra("participants");
         if (incomingMembers != null && !incomingMembers.isEmpty()) {
             participants.addAll(incomingMembers);
@@ -64,14 +74,59 @@ public class PromiseWaitingActivity extends AppCompatActivity {
         }
         renderParticipants();
 
-        // 좌측 상단 '<' 화살표 클릭 시 이전 화면(홈)으로 복귀
+        // Firestore 실시간 참여자 목록 수신 시작
+        startListeningMembers();
+
+        // 좌측 상단 '<' 화살표 클릭 시 이전 화면으로 복귀
         btnBack.setOnClickListener(v -> finish());
 
-        // 우측 상단 '•••' 클릭 시 초대 코드 안내
-        btnMore.setOnClickListener(v -> showPromiseDetailDialog());
+        // 우측 상단 '•••' 클릭 시 초대 코드 복사 팝업
+        btnMore.setOnClickListener(this::showSettings);
 
         // 하단 '약속 정보 확인' 버튼 클릭
         btnConfirmInfo.setOnClickListener(v -> showPromiseDetailDialog());
+    }
+
+    private void startListeningMembers() {
+        if (roomCode == null || roomCode.isEmpty()) return;
+
+        firebaseManager.listenRoomMembers(roomCode, memberList -> {
+            if (memberList == null || memberList.isEmpty()) return;
+
+            participants.clear();
+            for (Object item : memberList) {
+                if (item instanceof Map) {
+                    Object nickObj = ((Map<?, ?>) item).get("nickname");
+                    if (nickObj != null) {
+                        participants.add(String.valueOf(nickObj));
+                    }
+                }
+            }
+            if (!participants.isEmpty()) {
+                runOnUiThread(this::renderParticipants);
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (firebaseManager != null) {
+            firebaseManager.stopListening();
+        }
+    }
+
+    private void showSettings(View anchor) {
+        View content = getLayoutInflater().inflate(R.layout.popup_promise_settings, null);
+        int width = Math.round(220 * getResources().getDisplayMetrics().density);
+        PopupWindow popup = new PopupWindow(content, width, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        popup.setOutsideTouchable(true);
+        content.findViewById(R.id.btn_copy_promise_code).setOnClickListener(v -> {
+            PromiseSetupActivity.copyCode(this, roomCode);
+            popup.dismiss();
+        });
+        popup.showAsDropDown(anchor, 0, 0, Gravity.END);
     }
 
     /**
@@ -122,7 +177,7 @@ public class PromiseWaitingActivity extends AppCompatActivity {
                         "약속 시간 10분 전부터 실시간 위치 공유가 시작됩니다.";
 
         new AlertDialog.Builder(this)
-                .setTitle("약속 정보 확인")
+                .setTitle("약속 확인")
                 .setMessage(infoMessage)
                 .setPositiveButton("확인", null)
                 .show();

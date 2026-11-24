@@ -2,4 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- 다와가 메인 파란색 팔레트 -->
+    <color name="dawaga_blue">#2E74E8</color>
+    <color name="dawaga_blue_dark">#1D5FD1</color>
+    <color name="dawaga_bg">#F4F7FB</color>
+    <color name="dawaga_text_primary">#0F172A</color>
+    <color name="dawaga_text_secondary">#64748B</color>
 </resources>
