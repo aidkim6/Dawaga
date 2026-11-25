@@ -3,110 +3,124 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FAFAFA"
+    android:background="#F4F8FC"
     android:paddingStart="18dp"
     android:paddingEnd="18dp">
 
-    <!-- 상단 제목 영역 -->
+    <!-- 상단 제목 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:layout_marginTop="24dp">
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/btn_back"
-            android:layout_width="32dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="42dp"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_arrow_back"
             android:scaleType="centerInside"
-            android:contentDescription="뒤로가기" />
+            android:contentDescription="뒤로가기"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="8dp"
             android:text="실시간 도착 현황"
-            android:textColor="#222222"
-            android:textSize="25sp"
-            android:textStyle="bold" />
-
+            android:textColor="#172B4D"
+            android:textSize="23sp"
+            android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- 설명 -->
+    <!-- 안내 문구 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="8dp"
         android:text="약속 장소를 기준으로 친구들의 도착 상황을 확인해요."
-        android:textColor="#555555"
-        android:textSize="14sp" />
+        android:textColor="#64748B"
+        android:textSize="13sp"/>
 
-    <!-- LIVE 표시 -->
+    <!-- LIVE -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="18dp">
+        android:layout_marginTop="25dp"
+        android:layout_marginBottom="12dp"
+        android:orientation="horizontal">
 
         <TextView
-            android:layout_width="70dp"
-            android:layout_height="34dp"
+            android:layout_width="55dp"
+            android:layout_height="28dp"
             android:background="@drawable/bg_arrival_live"
             android:gravity="center"
             android:text="LIVE"
-            android:textColor="#444444"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:textColor="#3979D6"
+            android:textSize="12sp"
+            android:textStyle="bold"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
+            android:layout_marginStart="12dp"
             android:text="약속 장소까지 실시간 업데이트"
-            android:textColor="#777777"
-            android:textSize="14sp" />
-
+            android:textColor="#718096"
+            android:textSize="12sp"/>
     </LinearLayout>
 
-    <!-- 지도 영역 -->
+    <!-- 지도 -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="240dp"
+        android:layout_height="190dp"
         android:background="@drawable/bg_arrival_map"
         android:clipToOutline="true">
 
         <com.kakao.vectormap.MapView
             android:id="@+id/arrival_map_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
+            android:layout_height="match_parent"/>
     </FrameLayout>
 
     <!-- 지도 설명 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:gravity="center"
+        android:layout_marginTop="6dp"
         android:text="지도 영역 · 고정된 약속 장소 마커"
-        android:textColor="#888888"
-        android:textSize="12sp" />
+        android:textColor="#94A3B8"
+        android:textSize="11sp"/>
 
     <!-- 도착 현황 제목 -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="14dp"
-        android:text="도착 현황 · 가까운 순"
-        android:textColor="#222222"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="12dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="도착 현황 · 가까운 순"
+            android:textColor="#172B4D"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_member_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="도착 0 / 0명"
+            android:textColor="#3979D6"
+            android:textSize="13sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
 
     <!-- 친구 목록 -->
     <androidx.recyclerview.widget.RecyclerView
@@ -115,18 +129,18 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingBottom="8dp"
-        android:overScrollMode="never" />
+        android:paddingBottom="6dp"
+        android:overScrollMode="never"/>
 
-    <!-- 도착 판정 기준 -->
+    <!-- 도착 판정 안내 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="20dp"
         android:gravity="center"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="12dp"
         android:text="도착 판정 기준: 약속 장소 반경 50m 이내"
-        android:textColor="#888888"
-        android:textSize="13sp" />
+        android:textColor="#94A3B8"
+        android:textSize="11sp"/>
 
 </LinearLayout>

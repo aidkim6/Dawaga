@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,23 +70,66 @@ public class DawagaFirebaseManager {
     }
 
     // 4. 내 위치 전송
-    public void updateMyLocation(String roomCode, String userId, String nickname, double lat, double lng, boolean isArrived) {
-        Map<String, Object> memberData = new HashMap<>();
-        memberData.put("userId", userId);
-        memberData.put("nickname", nickname);
-        memberData.put("latitude", lat);
-        memberData.put("longitude", lng);
-        memberData.put("status", isArrived ? "ARRIVED" : "MOVING");
-        if (isArrived) {
-            memberData.put("arrivedAt", System.currentTimeMillis());
-        }
+    public void updateMyLocation(
+            String roomCode,
+            String userId,
+            String nickname,
+            double lat,
+            double lng,
+            boolean isArrived
+    ) {
 
-        db.collection("rooms").document(roomCode.toUpperCase())
-                .collection("members").document(userId)
-                .set(memberData)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Firestore 위치 저장 성공!"))
-                .addOnFailureListener(e -> Log.e(TAG, "Firestore 위치 저장 실패", e));
+        com.google.firebase.firestore.DocumentReference memberRef =
+                db.collection("rooms")
+                        .document(roomCode.toUpperCase())
+                        .collection("members")
+                        .document(userId);
+
+        db.runTransaction(transaction -> {
+
+            DocumentSnapshot snapshot =
+                    transaction.get(memberRef);
+
+            // 이미 도착한 사람은 상태와 도착 시간을 유지
+            if (snapshot.exists()
+                    && "ARRIVED".equals(snapshot.getString("status"))) {
+                return null;
+            }
+
+            Map<String, Object> memberData = new HashMap<>();
+
+            memberData.put("userId", userId);
+            memberData.put("nickname", nickname);
+            memberData.put("latitude", lat);
+            memberData.put("longitude", lng);
+
+            memberData.put(
+                    "status",
+                    isArrived ? "ARRIVED" : "MOVING"
+            );
+
+            if (isArrived) {
+                memberData.put(
+                        "arrivedAt",
+                        System.currentTimeMillis()
+                );
+            }
+
+            transaction.set(
+                    memberRef,
+                    memberData,
+                    SetOptions.merge()
+            );
+
+            return null;
+
+        }).addOnSuccessListener(aVoid ->
+                Log.d(TAG, "위치 저장 성공")
+        ).addOnFailureListener(e ->
+                Log.e(TAG, "위치 저장 실패", e)
+        );
     }
+
 
     // 5. 방 멤버 실시간 수신
     public interface OnMembersUpdatedListener {
