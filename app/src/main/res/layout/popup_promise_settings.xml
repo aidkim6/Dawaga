@@ -1,33 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_promise_settings"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="10dp">
 
-    <TextView
+    <!-- 버튼 1: 약속 설정 (상단 타이틀 버튼) -->
+    <Button
+        android:id="@+id/btn_promise_settings_title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="8dp"
-        android:paddingVertical="6dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_input_field"
+        android:clickable="false"
+        android:focusable="false"
+        android:gravity="center"
+        android:stateListAnimator="@null"
         android:text="약속 설정"
-        android:textColor="#5E6D88"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:backgroundTint="@null" />
 
+    <!-- 버튼 2: 약속 확인 -->
+    <Button
+        android:id="@+id/tv_show_promise_info"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_input_field"
+        android:gravity="center"
+        android:stateListAnimator="@null"
+        android:text="약속 확인"
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:backgroundTint="@null" />
+
+    <!-- 버튼 3: 초대 코드 복사 -->
     <Button
         android:id="@+id/btn_copy_promise_code"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginTop="6dp"
-        android:background="@drawable/bg_input_field"
-        android:backgroundTint="@null"
-        android:gravity="start|center_vertical"
-        android:paddingHorizontal="12dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_primary_button"
+        android:gravity="center"
         android:stateListAnimator="@null"
         android:text="초대 코드 복사"
         android:textAllCaps="false"
-        android:textColor="#1D294B"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:backgroundTint="@null" />
+
 </LinearLayout>
