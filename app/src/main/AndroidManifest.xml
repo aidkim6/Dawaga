@@ -43,6 +43,13 @@
             android:name=".ArrivalStatusActivity"
             android:exported="true" />
         <activity
+            android:name=".ArrivalResultActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CreatePromiseActivity"
+            android:exported="false" />
+        <activity
             android:name=".CreatePromiseActivity"
             android:exported="false" />
         <activity

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F3F7FC"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- 제목 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="‹  도착 결과"
+            android:textColor="#1D3557"
+            android:textSize="23sp"
+            android:textStyle="bold"
+            android:layout_marginTop="20dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="모두 도착했어요! 오늘의 도착 순위를 확인해 보세요."
+            android:textColor="#334155"
+            android:textSize="13sp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="45dp" />
+
+        <!-- 모두 도착 카드 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:background="@drawable/bg_result_box">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="모두 도착!"
+                android:textColor="#1D3557"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_result_summary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="참여자 4명 · 소요 시간 12분"
+                android:textColor="#334155"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- 최종 도착 순위 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="최종 도착 순위"
+            android:textColor="#1D3557"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="12dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_final_ranking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never" />
+
+        <!-- 홈으로 돌아가기 -->
+        <Button
+            android:id="@+id/btn_result_home"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="45dp"
+            android:text="홈으로 돌아가기"
+            android:textColor="#1D3557"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:backgroundTint="#FFFFFF" />
+
+        <!-- 약속 종료 확인 -->
+        <Button
+            android:id="@+id/btn_end_meeting"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="25dp"
+            android:text="약속 종료 확인"
+            android:textColor="#1D3557"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:backgroundTint="#FFFFFF" />
+
+    </LinearLayout>
+</ScrollView>
