@@ -1,0 +1,71 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:accessibilityPaneTitle="약속 시간 선택"
+    android:background="@drawable/bg_promise_date_sheet"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="30dp"
+    android:paddingBottom="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:theme="@android:style/Theme.Material.Light">
+
+        <LinearLayout
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/Widget.Dawaga.DateWheelLabel"
+                android:text="시" />
+
+            <NumberPicker
+                style="@style/Widget.Dawaga.DateWheel"
+                android:id="@+id/picker_hour"
+                android:contentDescription="시" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/Widget.Dawaga.DateWheelLabel"
+                android:text="분" />
+
+            <NumberPicker
+                style="@style/Widget.Dawaga.DateWheel"
+                android:id="@+id/picker_minute"
+                android:contentDescription="분" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.Dawaga.DateSheetButton"
+            android:id="@+id/picker_time_cancel"
+            android:layout_marginEnd="8dp"
+            android:text="취소"
+            android:textColor="@color/promise_picker_accent"
+            app:backgroundTint="#E9EFFD" />
+
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.Dawaga.DateSheetButton"
+            android:id="@+id/picker_time_confirm"
+            android:text="확인"
+            android:textColor="@color/white"
+            app:backgroundTint="#4D70CE" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,9 +1,6 @@
 package com.example.dawaga;
 
-import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -52,17 +49,20 @@ public class CreatePromiseActivity extends AppCompatActivity {
             selectedDateStr = savedInstanceState.getString("date", "");
             selectedTimeStr = savedInstanceState.getString("time", "");
             meeting.setTimeInMillis(savedInstanceState.getLong("meeting"));
-            if (!selectedDateStr.isEmpty()) tvSelectedDate.setText(selectedDateStr);
-            if (!selectedTimeStr.isEmpty()) tvSelectedTime.setText(selectedTimeStr);
+            if (!selectedDateStr.isEmpty()) showSelection(tvSelectedDate, selectedDateStr);
+            if (!selectedTimeStr.isEmpty()) showSelection(tvSelectedTime, selectedTimeStr);
         }
+
+        getSupportFragmentManager().setFragmentResultListener(PromiseDatePicker.TAG, this, (key, result) ->
+                applyDate(result.getInt("year"), result.getInt("month"), result.getInt("day")));
+        getSupportFragmentManager().setFragmentResultListener(PromiseTimePicker.TAG, this, (key, result) ->
+                applyTime(result.getInt("hour"), result.getInt("minute")));
 
         // 좌측 상단 '<' 화살표 클릭 시 이전 화면(홈)으로 복귀
         btnBack.setOnClickListener(v -> finish());
 
-        // 약속 날짜 선택 (DatePickerDialog)
         boxSelectDate.setOnClickListener(v -> showDatePicker());
 
-        // 약속 시간 선택 (TimePickerDialog)
         boxSelectTime.setOnClickListener(v -> showTimePicker());
 
         // 하단 '다음: 장소 선택' 버튼 클릭
@@ -78,50 +78,34 @@ public class CreatePromiseActivity extends AppCompatActivity {
     }
 
     private void showDatePicker() {
-        Calendar cal = meeting;
-        DatePickerDialog dialog = new DatePickerDialog(
-                this,
-                (view, year, month, dayOfMonth) -> {
-                    Calendar picked = Calendar.getInstance();
-                    picked.set(year, month, dayOfMonth);
-                    meeting.set(year, month, dayOfMonth);
-                    String[] dayNames = {"일", "월", "화", "수", "목", "금", "토"};
-                    String dayOfWeek = dayNames[picked.get(Calendar.DAY_OF_WEEK) - 1];
+        if (getSupportFragmentManager().findFragmentByTag(PromiseDatePicker.TAG) != null) return;
+        PromiseDatePicker.newInstance(meeting).showNow(getSupportFragmentManager(), PromiseDatePicker.TAG);
+    }
 
-                    selectedDateStr = String.format(Locale.KOREA, "%d.%02d.%02d (%s)",
-                            year, month + 1, dayOfMonth, dayOfWeek);
-                    tvSelectedDate.setText(selectedDateStr);
-                    tvSelectedDate.setTextColor(Color.parseColor("#0F172A"));
-                },
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH),
-                cal.get(Calendar.DAY_OF_MONTH)
-        );
-        // 오늘 이전 날짜 선택 방지
-        dialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
-        dialog.show();
+    private void applyDate(int year, int month, int day) {
+        meeting.set(year, month - 1, day);
+        String[] dayNames = {"일", "월", "화", "수", "목", "금", "토"};
+        selectedDateStr = String.format(Locale.KOREA, "%d.%02d.%02d (%s)",
+                year, month, day, dayNames[meeting.get(Calendar.DAY_OF_WEEK) - 1]);
+        showSelection(tvSelectedDate, selectedDateStr);
     }
 
     private void showTimePicker() {
-        Calendar cal = meeting;
-        TimePickerDialog dialog = new TimePickerDialog(
-                this,
-                android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
-                (view, hourOfDay, minute) -> {
-                    meeting.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                    meeting.set(Calendar.MINUTE, minute);
-                    selectedTimeStr = String.format(Locale.KOREA, "%02d:%02d", hourOfDay, minute);
-                    tvSelectedTime.setText(selectedTimeStr);
-                    tvSelectedTime.setTextColor(Color.parseColor("#0F172A"));
-                },
-                cal.get(Calendar.HOUR_OF_DAY),
-                cal.get(Calendar.MINUTE),
-                true
-        );
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-        dialog.show();
+        if (getSupportFragmentManager().findFragmentByTag(PromiseTimePicker.TAG) != null) return;
+        PromiseTimePicker.newInstance(meeting.get(Calendar.HOUR_OF_DAY), meeting.get(Calendar.MINUTE))
+                .showNow(getSupportFragmentManager(), PromiseTimePicker.TAG);
+    }
+
+    private void applyTime(int hour, int minute) {
+        meeting.set(Calendar.HOUR_OF_DAY, hour);
+        meeting.set(Calendar.MINUTE, minute);
+        selectedTimeStr = String.format(Locale.KOREA, "%02d:%02d", hour, minute);
+        showSelection(tvSelectedTime, selectedTimeStr);
+    }
+
+    private void showSelection(TextView field, String value) {
+        field.setText(value);
+        field.setTextColor(getColor(R.color.text_primary));
     }
 
     private void handleNextPlaceStep() {

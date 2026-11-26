@@ -1,6 +1,7 @@
 package com.example.dawaga;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -32,6 +33,16 @@ public class JoinPromiseActivity extends AppCompatActivity {
         ImageButton btnBack = findViewById(R.id.btn_back_join);
         etInviteCode = findViewById(R.id.et_invite_code);
         btnConfirmPromise = findViewById(R.id.btn_confirm_promise);
+
+        Uri invite = getIntent().getData();
+        if (Intent.ACTION_VIEW.equals(getIntent().getAction()) && invite != null
+                && "dawaga".equals(invite.getScheme()) && "invite".equals(invite.getHost())
+                && invite.getPathSegments().size() == 1) {
+            String code = invite.getLastPathSegment();
+            if (code != null && code.matches("[A-Za-z0-9]{6}")) {
+                etInviteCode.setText(code.toUpperCase(Locale.ROOT));
+            }
+        }
 
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
