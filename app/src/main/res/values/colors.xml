@@ -11,4 +11,6 @@
     <color name="text_secondary">#64748B</color>
     <color name="bg_screen">#F8FAFC</color>
     <color name="border_light">#E2E8F0</color>
+    <color name="promise_picker_accent">#245DC9</color>
+    <color name="promise_picker_surface">#FFFFFF</color>
 </resources>
