@@ -1,6 +1,7 @@
 package com.example.dawaga;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
@@ -10,6 +11,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -176,7 +180,7 @@ public class ConfirmJoinActivity extends AppCompatActivity {
                     date = new SimpleDateFormat("M월 d일 (E)", Locale.KOREAN).format(d);
                 }
                 if (time == null || time.isEmpty()) {
-                    time = new SimpleDateFormat("HH:mm", Locale.KOREA).format(d);
+                    time = new SimpleDateFormat("HH:mm", Locale.KOREAN).format(d);
                 }
             }
         }
@@ -225,9 +229,42 @@ public class ConfirmJoinActivity extends AppCompatActivity {
     private void confirmAndGoWaitingRoom() {
         btnJoin.setEnabled(false);
 
-        firebaseManager.registerUser("참여자", new DawagaFirebaseManager.OnUserRegisteredListener() {
+        SharedPreferences prefs = getSharedPreferences("DawagaPrefs", MODE_PRIVATE);
+        String savedUserId = prefs.getString("userId", null);
+        String savedNickname = prefs.getString("nickname", "참여자");
+
+        if (savedUserId != null && !savedUserId.isEmpty()) {
+            saveJoinedPromiseToPrefs(prefs, roomCode, title, date, time, place);
+            firebaseManager.updateMyLocation(roomCode, savedUserId, savedNickname, 0.0, 0.0, false);
+
+            ArrayList<String> nextMembers = new ArrayList<>(memberNicknames);
+            if (!nextMembers.contains(savedNickname)) {
+                nextMembers.add(savedNickname);
+            }
+
+            Intent intent = new Intent(ConfirmJoinActivity.this, PromiseWaitingActivity.class);
+            intent.putExtra("room_code", roomCode);
+            intent.putExtra("user_id", savedUserId);
+            intent.putExtra("nickname", savedNickname);
+            intent.putExtra("promise_title", title);
+            intent.putExtra("promise_date", date);
+            intent.putExtra("promise_time", time);
+            intent.putExtra("promise_place", place);
+            intent.putStringArrayListExtra("participants", nextMembers);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
+        firebaseManager.registerUser(savedNickname, new DawagaFirebaseManager.OnUserRegisteredListener() {
             @Override
             public void onSuccess(String userId, String nickname) {
+                prefs.edit()
+                        .putString("userId", userId)
+                        .putString("nickname", nickname)
+                        .apply();
+                saveJoinedPromiseToPrefs(prefs, roomCode, title, date, time, place);
+
                 firebaseManager.updateMyLocation(roomCode, userId, nickname, 0.0, 0.0, false);
 
                 runOnUiThread(() -> {
@@ -262,6 +299,34 @@ public class ConfirmJoinActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private void saveJoinedPromiseToPrefs(
+            SharedPreferences prefs,
+            String code, String pTitle, String pDate, String pTime, String pPlace
+    ) {
+        try {
+            String raw = prefs.getString("saved_promises", "[]");
+            JSONArray arr = new JSONArray(raw);
+            JSONArray updated = new JSONArray();
+
+            JSONObject newItem = new JSONObject();
+            newItem.put("room_code", code);
+            newItem.put("promise_title", pTitle != null ? pTitle : "약속");
+            newItem.put("promise_date", pDate != null ? pDate : "");
+            newItem.put("promise_time", pTime != null ? pTime : "");
+            newItem.put("promise_place", pPlace != null ? pPlace : "");
+            updated.put(newItem);
+
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject obj = arr.getJSONObject(i);
+                if (!code.equalsIgnoreCase(obj.optString("room_code"))) {
+                    updated.put(obj);
+                }
+            }
+            prefs.edit().putString("saved_promises", updated.toString()).apply();
+        } catch (Exception ignored) {
+        }
     }
 
     @Override

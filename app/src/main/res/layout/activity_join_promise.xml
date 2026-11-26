@@ -1,27 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F3F6FB"
+    android:background="@color/bg_screen"
     tools:context=".JoinPromiseActivity">
 
-    <!-- 하단 고정 버튼: 약속 확인 -->
+    <!-- 하단 고정 버튼: 참여 확인 / 다시 입력하기 -->
     <Button
         android:id="@+id/btn_confirm_promise"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="52dp"
         android:layout_alignParentBottom="true"
         android:layout_marginHorizontal="20dp"
         android:layout_marginBottom="24dp"
         android:background="@drawable/bg_primary_button"
-        android:backgroundTint="@null"
         android:stateListAnimator="@null"
         android:text="참여 확인"
         android:textAllCaps="false"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/white"
         android:textSize="16sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        app:backgroundTint="@null" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -37,7 +38,7 @@
             android:paddingTop="24dp"
             android:paddingBottom="24dp">
 
-            <!-- 상단 헤더: < 초대 코드 입력 -->
+            <!-- 상단 헤더: < 초대 코드 입력 / 코드 오류 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -51,23 +52,26 @@
                     android:layout_marginStart="-12dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="뒤로 가기"
-                    android:src="@drawable/ic_arrow_back" />
+                    android:src="@drawable/ic_arrow_back"
+                    app:tint="@color/text_primary" />
 
                 <TextView
+                    android:id="@+id/tv_join_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="초대 코드 입력"
-                    android:textColor="#0F172A"
+                    android:textColor="@color/text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
             <TextView
+                android:id="@+id/tv_join_subtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="친구에게 받은 6자리 코드를 입력해 주세요."
-                android:textColor="#475569"
+                android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
 
             <!-- 초대 코드 라벨 (박스 바깥 상단) -->
@@ -76,7 +80,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="72dp"
                 android:text="초대 코드"
-                android:textColor="#0F172A"
+                android:textColor="@color/text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -94,18 +98,30 @@
                 android:maxLength="6"
                 android:maxLines="1"
                 android:paddingHorizontal="18dp"
-                android:textColor="#0F172A"
+                android:textColor="@color/text_primary"
                 android:textColorHint="#CBD5E1"
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
+            <!-- 오류 시 나타나는 경고 문구 -->
+            <TextView
+                android:id="@+id/tv_error_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="⚠️ 유효하지 않은 초대 코드예요."
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
             <!-- 하단 안내 문구 -->
             <TextView
+                android:id="@+id/tv_join_guide"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="코드가 맞으면 약속 정보를 확인할 수 있어요."
-                android:textColor="#64748B"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
         </LinearLayout>

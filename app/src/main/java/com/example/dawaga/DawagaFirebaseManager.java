@@ -36,23 +36,50 @@ public class DawagaFirebaseManager {
                 .addOnFailureListener(listener::onFailure);
     }
 
-    // 2. 약속 방 생성
+    // 2. 약속 방 생성 (중복 코드 확인 후 생성)
     public interface OnRoomCallback {
         void onSuccess(Map<String, Object> roomData);
         void onFailure(Exception e);
     }
 
     public void createRoom(String roomName, double destLat, double destLng, long meetTimeMillis, OnRoomCallback callback) {
-        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        Map<String, Object> roomData = new HashMap<>();
-        roomData.put("roomCode", roomCode);
-        roomData.put("roomName", roomName);
-        roomData.put("destLatitude", destLat);
-        roomData.put("destLongitude", destLng);
-        roomData.put("meetTime", meetTimeMillis);
+        createUniqueRoom(roomName, destLat, destLng, meetTimeMillis, 0, callback);
+    }
 
-        db.collection("rooms").document(roomCode).set(roomData)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(roomData))
+    private void createUniqueRoom(
+            String roomName,
+            double destLat,
+            double destLng,
+            long meetTimeMillis,
+            int retryCount,
+            OnRoomCallback callback
+    ) {
+        if (retryCount >= 5) {
+            callback.onFailure(new Exception("방 코드 생성에 실패했습니다. 다시 시도해 주세요."));
+            return;
+        }
+
+        String roomCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+
+        db.collection("rooms").document(roomCode).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // 이미 존재하는 코드면 다시 생성
+                        createUniqueRoom(roomName, destLat, destLng, meetTimeMillis, retryCount + 1, callback);
+                    } else {
+                        // 겹치지 않는 코드면 방 생성
+                        Map<String, Object> roomData = new HashMap<>();
+                        roomData.put("roomCode", roomCode);
+                        roomData.put("roomName", roomName);
+                        roomData.put("destLatitude", destLat);
+                        roomData.put("destLongitude", destLng);
+                        roomData.put("meetTime", meetTimeMillis);
+
+                        db.collection("rooms").document(roomCode).set(roomData)
+                                .addOnSuccessListener(aVoid -> callback.onSuccess(roomData))
+                                .addOnFailureListener(callback::onFailure);
+                    }
+                })
                 .addOnFailureListener(callback::onFailure);
     }
 

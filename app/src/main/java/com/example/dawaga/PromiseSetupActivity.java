@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -44,6 +45,9 @@ import com.kakao.vectormap.label.Label;
 import com.kakao.vectormap.label.LabelOptions;
 import com.kakao.vectormap.label.LabelStyle;
 import com.kakao.vectormap.label.LabelStyles;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -283,11 +287,17 @@ public class PromiseSetupActivity extends AppCompatActivity {
         if (selected == null || Boolean.TRUE.equals(state.saving.getValue())) return;
         state.saving.setValue(true);
         String title = getIntent().getStringExtra("promise_title");
+        String date = getIntent().getStringExtra("promise_date");
+        String time = getIntent().getStringExtra("promise_time");
+        String placeName = selected.name();
+
         new DawagaFirebaseManager().createRoom(title, selected.latitude(), selected.longitude(),
                 getIntent().getLongExtra("meet_time", 0), new DawagaFirebaseManager.OnRoomCallback() {
                     @Override
                     public void onSuccess(Map<String, Object> roomData) {
-                        state.roomCode.setValue((String) roomData.get("roomCode"));
+                        String createdCode = (String) roomData.get("roomCode");
+                        saveCreatedPromiseToPrefs(createdCode, title, date, time, placeName);
+                        state.roomCode.setValue(createdCode);
                         state.saving.setValue(false);
                     }
 
@@ -297,6 +307,33 @@ public class PromiseSetupActivity extends AppCompatActivity {
                         state.failed.setValue(true);
                     }
                 });
+    }
+
+    private void saveCreatedPromiseToPrefs(String code, String title, String date, String time, String place) {
+        if (code == null || code.trim().isEmpty()) return;
+        SharedPreferences prefs = getSharedPreferences("DawagaPrefs", MODE_PRIVATE);
+        try {
+            String raw = prefs.getString("saved_promises", "[]");
+            JSONArray arr = new JSONArray(raw);
+            JSONArray updated = new JSONArray();
+
+            JSONObject newItem = new JSONObject();
+            newItem.put("room_code", code.trim().toUpperCase(Locale.ROOT));
+            newItem.put("promise_title", title != null ? title : "약속");
+            newItem.put("promise_date", date != null ? date : "");
+            newItem.put("promise_time", time != null ? time : "");
+            newItem.put("promise_place", place != null ? place : "");
+            updated.put(newItem);
+
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject obj = arr.getJSONObject(i);
+                if (!code.equalsIgnoreCase(obj.optString("room_code"))) {
+                    updated.put(obj);
+                }
+            }
+            prefs.edit().putString("saved_promises", updated.toString()).apply();
+        } catch (Exception ignored) {
+        }
     }
 
     private void showInvite() {

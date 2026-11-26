@@ -35,6 +35,9 @@ import com.kakao.vectormap.label.LabelStyle;
 import com.kakao.vectormap.label.LabelStyles;
 import com.kakao.vectormap.label.LabelTextBuilder;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.Locale;
 import java.util.Map;
 
@@ -42,10 +45,10 @@ public class MainActivity extends AppCompatActivity {
 
     private MapView mapView;
     private DawagaFirebaseManager firebaseManager;
-    private String currentRoomCode = "TEST01"; // 기본 테스트 방 코드
+    private String currentRoomCode = "TEST01";
 
     private static final String TAG = "SoyeonAccountTimer";
-    private static final long TEN_MINUTES_MILLIS = 10 * 60 * 1000L; // 연산자 수정 완료
+    private static final long TEN_MINUTES_MILLIS = 10 * 60 * 1000L;
 
     private SharedPreferences prefs;
     private final SharedPreferences.OnSharedPreferenceChangeListener photoListener = (preferences, key) -> {
@@ -56,11 +59,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvAuthStatus, tvUserInfo, tvTimer;
     private EditText etNickname, etRoomCode;
 
-    // [추가] 홈 화면 약속 카드 영역
     private LinearLayout cardEmptyPromise;
     private LinearLayout layoutActivePromiseList;
 
-    // [추가] 약속 만들기 화면 결과 수신 런처
     private final ActivityResultLauncher<Intent> createPromiseLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
                             String place = data.getStringExtra("promise_place");
                             String roomCode = data.getStringExtra("room_code");
 
+                            savePromiseToPrefs(roomCode, title, date, time, place);
                             addActivePromiseCard(title, date, time, place, roomCode);
                             if (data.getBooleanExtra("open_waiting", false)) {
                                 openPromiseWaiting(data);
@@ -81,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
 
-    // [추가] 초대 코드로 참여 화면 결과 수신 런처
     private final ActivityResultLauncher<Intent> joinPromiseLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
                             String place = data.getStringExtra("promise_place");
                             String roomCode = data.getStringExtra("room_code");
 
+                            savePromiseToPrefs(roomCode, title, date, time, place);
                             addActivePromiseCard(title, date, time, place, roomCode);
                             if (data.getBooleanExtra("open_waiting", false)) {
                                 openPromiseWaiting(data);
@@ -106,14 +108,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 1. 카카오 지도 SDK 초기화
         KakaoMapSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY);
         setContentView(R.layout.activity_main);
 
-        // 2. Firebase 매니저 초기화
         firebaseManager = new DawagaFirebaseManager();
 
-        // 3. MapView 바인딩 및 시작
         mapView = findViewById(R.id.map_view);
         mapView.start(new MapLifeCycleCallback() {
             @Override
@@ -130,16 +129,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onMapReady(@NonNull KakaoMap kakaoMap) {
                 Log.d("KakaoMapTest", "onMapReady: 카카오맵 연동 성공!");
-
-                // 약속 장소 지도 핀 찍기 & 카메라 이동 (성신여대입구역 37.5926, 127.0164)
                 addDestinationPin(kakaoMap, 37.5926, 127.0164, "약속 장소");
-
-                // Firestore 실시간 멤버 수신 리스너 등록
                 startListeningRoom(currentRoomCode);
             }
         });
 
-        // 4. [예원 파트] 하단 테스트 버튼 (방 생성 및 시뮬레이터 이동) 바인딩 및 이벤트 연결
         Button btnCreateRoomMain = findViewById(R.id.btn_create_room);
         Button btnSimulateMove = findViewById(R.id.btn_simulate_move);
 
@@ -179,14 +173,10 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // [추가] 홈 화면 약속 만들기 이동 연결
         initHomePromiseFlow();
-
-        // 5. [소연 파트] 계정 & 타이머 기능 초기화 호출
         initSoyeonAccountAndTimer();
     }
 
-    // [추가] 홈 화면 빈 상태 초기화 및 '새로운 약속 만들기' 화면 연결
     private void initHomePromiseFlow() {
         findViewById(R.id.card_hero_nickname).setOnClickListener(
                 v -> startActivity(new Intent(this, ProfileActivity.class)));
@@ -221,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, PromiseWaitingActivity.class).putExtras(data));
     }
 
-    // [추가] 생성/참여된 약속 카드를 홈 화면 '참여 중인 약속'에 추가
     private void addActivePromiseCard(String title, String date, String time, String place, String roomCode) {
         if (cardEmptyPromise != null) {
             cardEmptyPromise.setVisibility(View.GONE);
@@ -301,14 +290,12 @@ public class MainActivity extends AppCompatActivity {
         layoutActivePromiseList.addView(card, 0);
     }
 
-    // 방 멤버 실시간 수신 리스너 등록 메서드
     private void startListeningRoom(String roomCode) {
         firebaseManager.listenRoomMembers(roomCode, members -> {
             Log.d("DawagaFirebase", "실시간 멤버 수신 완료! 인원수: " + members.size() + " / 데이터: " + members);
         });
     }
 
-    // 약속 장소 핀(Label) 찍기 + 카메라 이동 메서드
     public void addDestinationPin(KakaoMap kakaoMap, double destLat, double destLng, String placeName) {
         LatLng destPos = LatLng.from(destLat, destLng);
 
@@ -330,7 +317,6 @@ public class MainActivity extends AppCompatActivity {
         kakaoMap.moveCamera(CameraUpdateFactory.newCenterPosition(destPos, 16));
     }
 
-    // [소연 담당] 계정 등록 수정, 방 코드 생성, 타이머 & 화면 전환
     private void initSoyeonAccountAndTimer() {
         tvAuthStatus = findViewById(R.id.tv_soyeon_auth_status);
         tvUserInfo = findViewById(R.id.tv_soyeon_user_info);
@@ -347,10 +333,8 @@ public class MainActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("DawagaPrefs", MODE_PRIVATE);
 
-        // 기기에 저장된 기존 계정 불러오기
         loadSavedUserProfile();
 
-        // 1. 닉네임 등록
         if (btnRegister != null) {
             btnRegister.setOnClickListener(v -> {
                 String nickname = etNickname.getText().toString().trim();
@@ -380,7 +364,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // 2. 닉네임 수정
         if (btnRename != null) {
             btnRename.setOnClickListener(v -> {
                 String currentUserId = prefs.getString("userId", null);
@@ -401,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
                         .update("nickname", newNickname)
                         .addOnSuccessListener(aVoid -> {
                             prefs.edit().putString("nickname", newNickname).apply();
+                            updateNicknameInJoinedRooms(currentUserId, newNickname);
                             loadSavedUserProfile();
                             Log.d(TAG, "닉네임 수정 완료");
                         })
@@ -410,7 +394,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // 3. 방 코드 생성
         if (btnCreateRoomSoyeon != null) {
             btnCreateRoomSoyeon.setOnClickListener(v -> {
                 long defaultMeetTime = System.currentTimeMillis() + TEN_MINUTES_MILLIS;
@@ -434,20 +417,35 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // 4. 방 코드 검증
         if (btnJoinRoom != null) {
             btnJoinRoom.setOnClickListener(v -> {
                 // 추후 방 검증 로직 연결
             });
         }
 
-        // 5. 타이머 카운트다운 & 자동 화면 전환
         if (btnFastTimer != null) {
             btnFastTimer.setOnClickListener(v -> {
                 String code = (etRoomCode != null) ? etRoomCode.getText().toString().trim() : "";
                 if (code.isEmpty()) code = "TEST01";
-                startCountdownTimer(5000L, code); // 5초 시연용
+                startCountdownTimer(5000L, code);
             });
+        }
+    }
+
+    private void updateNicknameInJoinedRooms(String userId, String newNickname) {
+        try {
+            String raw = prefs.getString("saved_promises", "[]");
+            JSONArray arr = new JSONArray(raw);
+            for (int i = 0; i < arr.length(); i++) {
+                String code = arr.getJSONObject(i).optString("room_code");
+                if (!code.isEmpty()) {
+                    FirebaseFirestore.getInstance()
+                            .collection("rooms").document(code)
+                            .collection("members").document(userId)
+                            .update("nickname", newNickname);
+                }
+            }
+        } catch (Exception ignored) {
         }
     }
 
@@ -461,6 +459,61 @@ public class MainActivity extends AppCompatActivity {
         } else {
             if (tvAuthStatus != null) tvAuthStatus.setText("익명 로그인 상태: 미등록");
             if (tvUserInfo != null) tvUserInfo.setText("내 닉네임");
+        }
+    }
+
+    private void savePromiseToPrefs(String code, String title, String date, String time, String place) {
+        if (code == null || code.trim().isEmpty()) return;
+        SharedPreferences p = getSharedPreferences("DawagaPrefs", MODE_PRIVATE);
+        try {
+            String raw = p.getString("saved_promises", "[]");
+            JSONArray arr = new JSONArray(raw);
+            JSONArray updated = new JSONArray();
+
+            JSONObject newItem = new JSONObject();
+            newItem.put("room_code", code.trim().toUpperCase(Locale.ROOT));
+            newItem.put("promise_title", title != null ? title : "약속");
+            newItem.put("promise_date", date != null ? date : "");
+            newItem.put("promise_time", time != null ? time : "");
+            newItem.put("promise_place", place != null ? place : "");
+            updated.put(newItem);
+
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject obj = arr.getJSONObject(i);
+                if (!code.equalsIgnoreCase(obj.optString("room_code"))) {
+                    updated.put(obj);
+                }
+            }
+            p.edit().putString("saved_promises", updated.toString()).apply();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void loadSavedPromises() {
+        if (layoutActivePromiseList == null || cardEmptyPromise == null) return;
+        SharedPreferences p = getSharedPreferences("DawagaPrefs", MODE_PRIVATE);
+        try {
+            String raw = p.getString("saved_promises", "[]");
+            JSONArray arr = new JSONArray(raw);
+
+            layoutActivePromiseList.removeAllViews();
+            if (arr.length() == 0) {
+                cardEmptyPromise.setVisibility(View.VISIBLE);
+                layoutActivePromiseList.setVisibility(View.GONE);
+                return;
+            }
+
+            for (int i = arr.length() - 1; i >= 0; i--) {
+                JSONObject obj = arr.getJSONObject(i);
+                addActivePromiseCard(
+                        obj.optString("promise_title"),
+                        obj.optString("promise_date"),
+                        obj.optString("promise_time"),
+                        obj.optString("promise_place"),
+                        obj.optString("room_code")
+                );
+            }
+        } catch (Exception ignored) {
         }
     }
 
@@ -526,6 +579,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (prefs != null) loadSavedUserProfile();
+        loadSavedPromises();
         if (mapView != null) mapView.resume();
     }
 
