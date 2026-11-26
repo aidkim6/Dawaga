@@ -2,15 +2,19 @@ package com.example.dawaga;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Address;
 import android.location.Geocoder;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -19,6 +23,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -363,7 +368,7 @@ public class PromiseSetupActivity extends AppCompatActivity {
                 + " · " + selected.name();
         screen.add(summary, screen.label(details, 14, SetupScreen.MUTED, false), -2, 8);
         screen.add(screen.content, summary, -2, 20);
-        screen.add(screen.content, screen.button("친구에게 공유하기", SetupScreen.BLUE, this::shareCode), 56, 28);
+        screen.add(screen.content, screen.button("친구에게 공유하기", SetupScreen.BLUE, this::showShareOptions), 56, 28);
         screen.add(screen.content, screen.button("약속 대기실로 이동", SetupScreen.BLUE, () -> finishWithResult(true)), 56, 12);
         screen.add(screen.content, screen.button("홈으로 이동", Color.WHITE, () -> finishWithResult(false)), 56, 12);
         TextView hint = screen.label("참여자는 코드로 입장할 수 있어요.", 13, SetupScreen.MUTED, false);
@@ -378,10 +383,54 @@ public class PromiseSetupActivity extends AppCompatActivity {
         }
     }
 
-    private void shareCode() {
-        Intent share = new Intent(Intent.ACTION_SEND).setType("text/plain")
-                .putExtra(Intent.EXTRA_TEXT, getIntent().getStringExtra("promise_title") + " · 다와가 초대 코드 " + roomCode);
-        startActivity(Intent.createChooser(share, "초대 코드 공유"));
+    private void showShareOptions() {
+        Dialog dialog = new Dialog(this);
+        LinearLayout panel = screen.column();
+        panel.setPadding(screen.dp(20), screen.dp(28), screen.dp(20), screen.dp(36));
+        screen.add(panel, screen.label("친구에게 약속 공유하기", 20, SetupScreen.INK, true), -2, 0);
+        screen.add(panel, screen.label("초대 코드 " + roomCode + "을 원하는 방법으로 전달해 주세요.",
+                14, SetupScreen.MUTED, false), -2, 12);
+
+        String link = new Uri.Builder().scheme("dawaga").authority("invite").appendPath(roomCode).build().toString();
+        screen.add(panel, screen.button("카카오톡으로 공유", Color.WHITE, () -> {
+            try {
+                startActivity(inviteShareIntent().setPackage("com.kakao.talk"));
+                dialog.dismiss();
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(this, "카카오톡을 사용할 수 없어요. 다른 공유 방법을 선택해 주세요.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }), 52, 22);
+        screen.add(panel, screen.button("초대 링크 복사", Color.WHITE, () -> {
+            getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText("초대 링크", link));
+            if (Build.VERSION.SDK_INT < 33) {
+                Toast.makeText(this, "초대 링크를 복사했어요.", Toast.LENGTH_SHORT).show();
+            }
+            dialog.dismiss();
+        }), 52, 12);
+        screen.add(panel, screen.button("다른 앱으로 공유", Color.WHITE, () -> {
+            startActivity(Intent.createChooser(inviteShareIntent(), "초대 코드 공유"));
+            dialog.dismiss();
+        }), 52, 12);
+        Button cancel = screen.button("취소", Color.WHITE, dialog::dismiss);
+        cancel.setTypeface(null, android.graphics.Typeface.NORMAL);
+        screen.add(panel, cancel, 52, 12);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setBackground(screen.shape(SetupScreen.BACKGROUND, false));
+        scroll.setClipToOutline(true);
+        scroll.addView(panel);
+        dialog.setContentView(scroll);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.show();
+        int width = Math.min(screen.dp(360), getResources().getDisplayMetrics().widthPixels - screen.dp(48));
+        dialog.getWindow().setLayout(width, LinearLayout.LayoutParams.WRAP_CONTENT);
+    }
+
+    private Intent inviteShareIntent() {
+        return new Intent(Intent.ACTION_SEND).setType("text/plain")
+                .putExtra(Intent.EXTRA_TEXT, getIntent().getStringExtra("promise_title")
+                        + " · 다와가 초대 코드 " + roomCode);
     }
 
     private void goBack() {

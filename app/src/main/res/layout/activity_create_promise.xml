@@ -114,6 +114,7 @@
                 android:background="@drawable/bg_input_field"
                 android:clickable="true"
                 android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="18dp">
@@ -122,8 +123,11 @@
                     android:id="@+id/tv_selected_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="날짜 선택  ▾"
-                    android:textColor="@color/text_secondary"
+                    android:drawableStart="@drawable/ic_promise_calendar"
+                    android:drawablePadding="12dp"
+                    android:gravity="center_vertical"
+                    android:text="날짜 선택"
+                    android:textColor="#475569"
                     android:textSize="15sp" />
             </LinearLayout>
 
@@ -145,6 +149,7 @@
                 android:background="@drawable/bg_input_field"
                 android:clickable="true"
                 android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="18dp">
@@ -153,8 +158,11 @@
                     android:id="@+id/tv_selected_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="시간 선택  ▾"
-                    android:textColor="@color/text_secondary"
+                    android:drawableStart="@drawable/ic_promise_clock"
+                    android:drawablePadding="12dp"
+                    android:gravity="center_vertical"
+                    android:text="시간 선택"
+                    android:textColor="#475569"
                     android:textSize="15sp" />
             </LinearLayout>
 

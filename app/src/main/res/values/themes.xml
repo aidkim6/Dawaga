@@ -6,4 +6,30 @@
     </style>
 
     <style name="Theme.Dawaga" parent="Base.Theme.Dawaga" />
+
+    <style name="Widget.Dawaga.DateWheelLabel" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="Widget.Dawaga.DateWheel" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">168dp</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:foreground">@drawable/bg_promise_wheel_fade</item>
+    </style>
+
+    <style name="Widget.Dawaga.DateSheetButton" parent="Widget.Material3.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">12dp</item>
+    </style>
 </resources>
