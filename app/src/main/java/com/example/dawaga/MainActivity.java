@@ -11,6 +11,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
     private static final long TEN_MINUTES_MILLIS = 10 * 60 * 1000L;
 
     private SharedPreferences prefs;
+    private final SharedPreferences.OnSharedPreferenceChangeListener photoListener = (preferences, key) -> {
+        if (ProfilePhoto.REVISION.equals(key)) refreshProfilePhoto();
+    };
     private CountDownTimer countDownTimer;
 
     private TextView tvAuthStatus, tvUserInfo, tvTimer;
@@ -551,6 +555,24 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("isAutoEntered", true);
         startActivity(intent);
         finish();
+    }
+
+    private void refreshProfilePhoto() {
+        ImageView profilePhoto = findViewById(R.id.home_profile_photo);
+        if (profilePhoto != null) ProfilePhoto.show(profilePhoto);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (prefs != null) prefs.registerOnSharedPreferenceChangeListener(photoListener);
+        refreshProfilePhoto();
+    }
+
+    @Override
+    protected void onStop() {
+        if (prefs != null) prefs.unregisterOnSharedPreferenceChangeListener(photoListener);
+        super.onStop();
     }
 
     @Override

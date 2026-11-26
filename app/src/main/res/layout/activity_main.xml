@@ -55,11 +55,15 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <View
-                    android:id="@+id/view_avatar_placeholder"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_avatar_circle" />
+                <ImageView
+                    android:id="@+id/home_profile_photo"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_avatar_circle"
+                    android:clipToOutline="true"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_profile_avatar" />
 
                 <TextView
                     android:id="@+id/tv_soyeon_user_info"
