@@ -131,7 +131,7 @@ public class ProfileActivity extends AppCompatActivity {
                     .addOnFailureListener(error -> showError());
             return;
         }
-        new DawagaFirebaseManager().registerUser(value, new DawagaFirebaseManager.OnUserRegisteredListener() {
+        new DawagaFirebaseManager().registerUser(ProfileActivity.this,value, new DawagaFirebaseManager.OnUserRegisteredListener() {
             @Override
             public void onSuccess(String id, String savedNickname) {
                 onSaved(id, savedNickname);

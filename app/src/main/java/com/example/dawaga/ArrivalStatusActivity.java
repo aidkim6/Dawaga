@@ -1,136 +1,87 @@
-
 package com.example.dawaga;
 
-import android.graphics.Color;
+import com.example.dawaga.location.LocationShareSession;
+
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ImageButton;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.dawaga.location.LocationPermissionHelper;
-import com.example.dawaga.location.LocationRules;
-import com.example.dawaga.location.LocationShareSession;
-import com.example.dawaga.location.LocationTracker;
-
 import com.kakao.vectormap.KakaoMap;
 import com.kakao.vectormap.KakaoMapReadyCallback;
-import com.kakao.vectormap.KakaoMapSdk;
 import com.kakao.vectormap.LatLng;
 import com.kakao.vectormap.MapLifeCycleCallback;
 import com.kakao.vectormap.MapView;
 import com.kakao.vectormap.camera.CameraUpdateFactory;
-import com.kakao.vectormap.label.LabelLayer;
-import com.kakao.vectormap.label.LabelOptions;
-import com.kakao.vectormap.label.LabelStyle;
-import com.kakao.vectormap.label.LabelStyles;
-import com.kakao.vectormap.label.LabelTextBuilder;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ArrivalStatusActivity extends AppCompatActivity {
 
-    private static final String TAG = "ArrivalStatus";
+    private static final String TAG = "ArrivalStatusActivity";
 
     private MapView mapView;
-    private DawagaFirebaseManager firebaseManager;
+    private KakaoMap kakaoMap;
+
+    private TextView tvMemberCount;
+    private Button btnCloseRoom;
+
+    private RecyclerView recyclerView;
     private MemberStatusAdapter adapter;
 
-    private LocationPermissionHelper permissionHelper;
+    private DawagaFirebaseManager firebaseManager;
     private LocationShareSession shareSession;
 
     private String roomCode;
-    private String placeName;
     private String myUserId;
     private String myNickname;
+    private String placeName;
 
     private double destinationLat;
     private double destinationLng;
 
-    private long meetTimeMillis;
-
-    private boolean permissionRequestAttempted = false;
-
-    private TextView tvMemberCount;
+    private boolean isRoomEnded = false;
+    private boolean isHandlingRoomEnd = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // 1. 이전 화면에서 전달받은 약속 정보
-        roomCode = getIntent().getStringExtra("ROOM_CODE");
-
-        destinationLat = getIntent().getDoubleExtra(
-                "DEST_LAT", 0.0
-        );
-
-        destinationLng = getIntent().getDoubleExtra(
-                "DEST_LNG", 0.0
-        );
-
-        placeName = getIntent().getStringExtra("PLACE_NAME");
-
-        meetTimeMillis = getIntent().getLongExtra(
-                "MEET_TIME", 0L
-        );
-
-        if (roomCode == null || roomCode.trim().isEmpty()) {
-            Toast.makeText(this,
-                    "약속방 정보를 찾을 수 없습니다.",
-                    Toast.LENGTH_LONG).show();
-
-            finish();
-            return;
-        }
-
-        if (placeName == null) {
-            placeName = "약속 장소";
-        }
-
-        // 2. 내 사용자 정보 가져오기
-        android.content.SharedPreferences prefs =
-                getSharedPreferences("DawagaPrefs", MODE_PRIVATE);
-
-        myUserId = prefs.getString("userId", null);
-        myNickname = prefs.getString("nickname", "나");
-
-        if (getIntent().hasExtra("user_id")) {
-            myUserId = getIntent().getStringExtra("user_id");
-        }
-
-        if (getIntent().hasExtra("nickname")) {
-            myNickname = getIntent().getStringExtra("nickname");
-        }
-
-        // 3. 카카오맵 초기화
-        KakaoMapSdk.init(
-                this,
-                BuildConfig.KAKAO_NATIVE_APP_KEY
-        );
-
         setContentView(R.layout.activity_arrival_status);
 
-        // 4. 화면 요소 연결
+        // 전달받은 정보
+        Intent intent = getIntent();
+
+        roomCode = intent.getStringExtra("ROOM_CODE");
+        destinationLat = intent.getDoubleExtra("DEST_LAT", 0);
+        destinationLng = intent.getDoubleExtra("DEST_LNG", 0);
+        placeName = intent.getStringExtra("PLACE_NAME");
+
+        myUserId = intent.getStringExtra("user_id");
+        myNickname = intent.getStringExtra("nickname");
+
+        // 뷰 연결
         mapView = findViewById(R.id.arrival_map_view);
-
         tvMemberCount = findViewById(R.id.tv_member_count);
+        btnCloseRoom = findViewById(R.id.btn_close_room);
 
-        ImageButton btnBack = findViewById(R.id.btn_back);
+        recyclerView = findViewById(R.id.member_recycler_view);
 
-        btnBack.setOnClickListener(v -> finish());
+        // Firebase 초기화
+        firebaseManager = new DawagaFirebaseManager();
 
-        // 5. 친구 목록 RecyclerView
-        RecyclerView recyclerView =
-                findViewById(R.id.member_recycler_view);
+        // 방장 전용 버튼은 처음에 숨김
+        btnCloseRoom.setVisibility(View.GONE);
 
+        // RecyclerView 설정
         recyclerView.setLayoutManager(
                 new LinearLayoutManager(this)
         );
@@ -143,12 +94,257 @@ public class ArrivalStatusActivity extends AppCompatActivity {
 
         recyclerView.setAdapter(adapter);
 
-        // 6. Firebase 및 위치 권한 객체 생성
-        firebaseManager = new DawagaFirebaseManager();
+        // 필수 정보 확인
+        if (roomCode == null || myUserId == null) {
+            Toast.makeText(
+                    this,
+                    "약속방 정보를 불러오지 못했습니다.",
+                    Toast.LENGTH_SHORT
+            ).show();
 
-        permissionHelper = new LocationPermissionHelper(this);
+            finish();
+            return;
+        }
 
-        // 7. 지도 실행
+        // 방장 확인
+        checkRoomHost();
+
+        // 방 상태 실시간 감지
+        listenRoomStatus();
+
+        // 참여자 목록 실시간 감지
+        listenRoomMembers();
+
+        // 지도 시작
+        startMap();
+
+        // 약속 마감 버튼
+        btnCloseRoom.setOnClickListener(v ->
+                showCloseRoomDialog()
+        );
+
+        // 위치 공유 세션 생성
+        createLocationSession();
+    }
+
+    // 방장 확인
+    private void checkRoomHost() {
+
+        firebaseManager.getRoomHostId(
+                roomCode,
+                new DawagaFirebaseManager.OnRoomHostListener() {
+
+                    @Override
+                    public void onSuccess(String hostId) {
+
+                        if (isRoomEnded || isFinishing()) {
+                            return;
+                        }
+
+                        if (myUserId.equals(hostId)) {
+                            btnCloseRoom.setVisibility(View.VISIBLE);
+                        } else {
+                            btnCloseRoom.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.e(TAG, "방장 확인 실패", e);
+                    }
+                }
+        );
+    }
+
+    // 방 상태 실시간 감지
+    private void listenRoomStatus() {
+
+        firebaseManager.listenRoomStatus(
+                roomCode,
+                status -> handleRoomStatus(status)
+        );
+    }
+
+    // 방 상태에 따른 화면 이동
+    private void handleRoomStatus(String status) {
+
+        if (isFinishing() || isDestroyed() || isRoomEnded) {
+            return;
+        }
+
+        if ("CLOSED".equals(status)) {
+
+            isRoomEnded = true;
+
+            stopRoomActivity();
+
+            Intent intent = new Intent(
+                    ArrivalStatusActivity.this,
+                    ArrivalResultActivity.class
+            );
+
+            intent.putExtra("ROOM_CODE", roomCode);
+
+            startActivity(intent);
+            finish();
+
+        } else if ("EXPIRED".equals(status)) {
+
+            isRoomEnded = true;
+
+            stopRoomActivity();
+
+            new AlertDialog.Builder(this)
+                    .setTitle("약속 종료")
+                    .setMessage("약속 시간이 지나 약속방이 종료되었습니다.")
+                    .setCancelable(false)
+                    .setPositiveButton("확인", (dialog, which) -> {
+
+                        Intent intent = new Intent(
+                                ArrivalStatusActivity.this,
+                                MainActivity.class
+                        );
+
+                        intent.addFlags(
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                                        Intent.FLAG_ACTIVITY_NEW_TASK
+                        );
+
+                        startActivity(intent);
+                        finish();
+                    })
+                    .show();
+        }
+    }
+
+    // 약속 마감 확인창
+    private void showCloseRoomDialog() {
+
+        if (isRoomEnded || isFinishing()) {
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("약속 마감")
+                .setMessage(
+                        "약속을 마감하시겠습니까?\n" +
+                                "마감하면 모든 참여자의 도착 결과가 저장됩니다."
+                )
+                .setNegativeButton("취소", null)
+                .setPositiveButton("마감하기", (dialog, which) -> {
+
+                    btnCloseRoom.setEnabled(false);
+
+                    firebaseManager.closeRoom(
+                            roomCode,
+                            myUserId,
+                            new DawagaFirebaseManager.OnRoomClosedListener() {
+
+                                @Override
+                                public void onSuccess() {
+
+                                    if (isFinishing() || isDestroyed()) {
+                                        return;
+                                    }
+
+                                    Toast.makeText(
+                                            ArrivalStatusActivity.this,
+                                            "약속이 마감되었습니다.",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+                                }
+
+                                @Override
+                                public void onFailure(Exception e) {
+
+                                    if (isFinishing() || isDestroyed()) {
+                                        return;
+                                    }
+
+                                    btnCloseRoom.setEnabled(true);
+
+                                    Toast.makeText(
+                                            ArrivalStatusActivity.this,
+                                            "약속 마감에 실패했습니다.",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+
+                                    Log.e(TAG, "약속 마감 실패", e);
+                                }
+                            }
+                    );
+                })
+                .show();
+    }
+
+    // 참여자 목록 실시간 감지
+    private void listenRoomMembers() {
+
+        firebaseManager.listenRoomMembers(
+                roomCode,
+                members -> {
+
+                    if (isRoomEnded || isFinishing()) {
+                        return;
+                    }
+
+                    adapter.updateMembers(members);
+
+                    if (tvMemberCount != null) {
+                        tvMemberCount.setText(
+                                "참여자 " + members.size() + "명"
+                        );
+                    }
+                }
+        );
+    }
+
+    // 위치 공유 세션 생성
+    private void createLocationSession() {
+
+        shareSession = new LocationShareSession(
+                this,
+                firebaseManager,
+                roomCode,
+                myUserId,
+                myNickname,
+                destinationLat,
+                destinationLng,
+                new LocationShareSession.Listener() {
+
+                    @Override
+                    public void onMyProgress(
+                            double distanceM,
+                            int etaMinutes
+                    ) {
+                        Log.d(
+                                TAG,
+                                "현재 거리: " + distanceM +
+                                        "m, 예상 도착: " + etaMinutes + "분"
+                        );
+                    }
+
+                    @Override
+                    public void onArrived() {
+                        Log.d(TAG, "도착 처리 완료");
+                    }
+
+                    @Override
+                    public void onPermissionMissing() {
+                        Toast.makeText(
+                                ArrivalStatusActivity.this,
+                                "위치 권한을 확인해 주세요.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+        );
+    }
+
+    // 지도 시작
+    // 지도 시작
+    private void startMap() {
+
         mapView.start(
                 new MapLifeCycleCallback() {
 
@@ -160,97 +356,38 @@ public class ArrivalStatusActivity extends AppCompatActivity {
                     @Override
                     public void onMapError(Exception error) {
                         Log.e(TAG, "지도 오류", error);
-
-                        Toast.makeText(
-                                ArrivalStatusActivity.this,
-                                "지도를 불러오지 못했습니다.",
-                                Toast.LENGTH_LONG
-                        ).show();
                     }
                 },
 
                 new KakaoMapReadyCallback() {
 
                     @Override
-                    public void onMapReady(@NonNull KakaoMap map) {
+                    public void onMapReady(KakaoMap kakaoMap) {
 
-                        addDestinationPin(
-                                map,
+                        ArrivalStatusActivity.this.kakaoMap = kakaoMap;
+
+                        kakaoMap.moveCamera(
+                                CameraUpdateFactory.newCenterPosition(
+                                        LatLng.from(
+                                                destinationLat,
+                                                destinationLng
+                                        ),
+                                        16
+                                )
+                        );
+                    }
+
+                    @Override
+                    public LatLng getPosition() {
+                        return LatLng.from(
                                 destinationLat,
-                                destinationLng,
-                                placeName
-                        );
-                    }
-                }
-        );
-
-        // 8. 친구들의 위치 실시간 수신
-        listenRoomMembers();
-
-        // 9. 내 위치 공유 객체 생성
-        createLocationSession();
-    }
-
-    // 내 위치 공유 세션 생성
-    private void createLocationSession() {
-
-        if (myUserId == null || myUserId.trim().isEmpty()) {
-
-            Toast.makeText(
-                    this,
-                    "사용자 정보가 없습니다.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
-        shareSession = new LocationShareSession(
-                this,
-                firebaseManager,
-                roomCode,
-                myUserId,
-                myNickname,
-                destinationLat,
-                destinationLng,
-
-                new LocationShareSession.Listener() {
-
-                    @Override
-                    public void onMyProgress(
-                            double distanceM,
-                            int etaMinutes
-                    ) {
-
-                        Log.d(TAG,
-                                "남은 거리: " + Math.round(distanceM)
-                                        + "m / 예상 시간: "
-                                        + etaMinutes + "분"
+                                destinationLng
                         );
                     }
 
                     @Override
-                    public void onArrived() {
-
-                        runOnUiThread(() -> {
-
-                            Toast.makeText(
-                                    ArrivalStatusActivity.this,
-                                    "약속 장소에 도착했어요!",
-                                    Toast.LENGTH_SHORT
-                            ).show();
-
-                        });
-                    }
-
-                    @Override
-                    public void onPermissionMissing() {
-
-                        runOnUiThread(() -> Toast.makeText(
-                                ArrivalStatusActivity.this,
-                                "위치 권한을 허용해 주세요.",
-                                Toast.LENGTH_LONG
-                        ).show());
+                    public int getZoomLevel() {
+                        return 16;
                     }
                 }
         );
@@ -259,165 +396,30 @@ public class ArrivalStatusActivity extends AppCompatActivity {
     // 위치 공유 시작
     private void startLocationSharingIfReady() {
 
-        if (shareSession == null || shareSession.isArrived()) {
+        if (isRoomEnded || isFinishing() || isDestroyed()) {
             return;
         }
 
-        // 약속 10분 전부터 공유
-        if (meetTimeMillis > 0 &&
-                !LocationRules.isShareWindow(
-                        System.currentTimeMillis(),
-                        meetTimeMillis
-                )) {
-
-            Log.d(TAG, "아직 위치 공유 시작 전입니다.");
-            return;
-        }
-
-        // 최초 권한 요청
-        if (!permissionRequestAttempted) {
-
-            permissionRequestAttempted = true;
-
-            permissionHelper.request((granted, precise) -> {
-
-                if (!granted) {
-
-                    Toast.makeText(
-                            this,
-                            "위치 권한을 허용해 주세요.",
-                            Toast.LENGTH_LONG
-                    ).show();
-
-                    return;
-                }
-
-                if (!precise) {
-
-                    Toast.makeText(
-                            this,
-                            "정확한 위치 권한을 허용해 주세요.",
-                            Toast.LENGTH_LONG
-                    ).show();
-                }
-
-                shareSession.start();
-            });
-
-        } else if (LocationTracker.hasPermission(this)) {
-
-            // 화면에 다시 돌아왔을 때 위치 공유 재시작
+        if (shareSession != null) {
             shareSession.start();
         }
     }
 
-    // 약속 장소 핀 표시
-    private void addDestinationPin(
-            KakaoMap map,
-            double lat,
-            double lng,
-            String name
-    ) {
+    // 방 종료 시 모든 작업 중지
+    private void stopRoomActivity() {
 
-        LatLng destination = LatLng.from(lat, lng);
-
-        LabelStyles styles =
-                map.getLabelManager().addLabelStyles(
-                        LabelStyles.from(
-                                LabelStyle.from(R.mipmap.ic_launcher)
-                                        .setTextStyles(24, Color.BLACK)
-                        )
-                );
-
-        LabelOptions options =
-                LabelOptions.from(destination)
-                        .setStyles(styles)
-                        .setTexts(
-                                new LabelTextBuilder().setTexts(name)
-                        );
-
-        LabelLayer layer =
-                map.getLabelManager().getLayer();
-
-        if (layer != null) {
-            layer.addLabel(options);
+        if (shareSession != null) {
+            shareSession.stop();
         }
 
-        // 카메라를 약속 장소로 이동
-        map.moveCamera(
-                CameraUpdateFactory.newCenterPosition(
-                        destination,
-                        16
-                )
-        );
-    }
+        if (firebaseManager != null) {
+            firebaseManager.stopListening();
+        }
 
-    // Firebase 친구 위치 실시간 수신
-    private void listenRoomMembers() {
-
-        firebaseManager.listenRoomMembers(
-                roomCode,
-                members -> {
-
-                    List<Map<String, Object>> memberList =
-                            new ArrayList<>();
-
-                    for (Object item : members) {
-
-                        if (!(item instanceof Map)) {
-                            continue;
-                        }
-
-                        Map<String, Object> member =
-                                new HashMap<>();
-
-                        for (Map.Entry<?, ?> entry :
-                                ((Map<?, ?>) item).entrySet()) {
-
-                            if (entry.getKey() instanceof String) {
-
-                                member.put(
-                                        (String) entry.getKey(),
-                                        entry.getValue()
-                                );
-                            }
-                        }
-
-                        memberList.add(member);
-                    }
-
-                    runOnUiThread(() -> {
-
-                        // 친구 목록 갱신
-                        adapter.updateMembers(memberList);
-
-                        // 전체 인원 및 도착 인원 계산
-                        int arrivedCount = 0;
-
-                        for (Map<String, Object> member :
-                                memberList) {
-
-                            if ("ARRIVED".equals(
-                                    member.get("status"))) {
-
-                                arrivedCount++;
-                            }
-                        }
-
-                        // 상단 도착 인원 표시
-                        tvMemberCount.setText(
-                                "도착 " + arrivedCount
-                                        + " / " + memberList.size()
-                                        + "명"
-                        );
-
-                        Log.d(TAG,
-                                "실시간 멤버 수: "
-                                        + memberList.size()
-                        );
-                    });
-                }
-        );
+        if (btnCloseRoom != null) {
+            btnCloseRoom.setEnabled(false);
+            btnCloseRoom.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -428,11 +430,14 @@ public class ArrivalStatusActivity extends AppCompatActivity {
             mapView.resume();
         }
 
-        startLocationSharingIfReady();
+        if (!isRoomEnded) {
+            startLocationSharingIfReady();
+        }
     }
 
     @Override
     protected void onPause() {
+        super.onPause();
 
         if (shareSession != null) {
             shareSession.stop();
@@ -441,12 +446,12 @@ public class ArrivalStatusActivity extends AppCompatActivity {
         if (mapView != null) {
             mapView.pause();
         }
-
-        super.onPause();
     }
 
     @Override
     protected void onDestroy() {
+
+        isRoomEnded = true;
 
         if (shareSession != null) {
             shareSession.stop();

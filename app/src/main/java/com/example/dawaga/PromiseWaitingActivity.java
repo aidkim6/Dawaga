@@ -139,11 +139,11 @@ public class PromiseWaitingActivity extends AppCompatActivity {
                 if (roomData.get("meetTime") instanceof Number) {
                     meetTimeMillis = ((Number) roomData.get("meetTime")).longValue();
                 }
-                if (roomData.get("destLat") instanceof Number) {
-                    destLat = ((Number) roomData.get("destLat")).doubleValue();
+                if (roomData.get("destLatitude") instanceof Number) {
+                    destLat = ((Number) roomData.get("destLatitude")).doubleValue();
                 }
-                if (roomData.get("destLng") instanceof Number) {
-                    destLng = ((Number) roomData.get("destLng")).doubleValue();
+                if (roomData.get("destLongitude") instanceof Number) {
+                    destLng = ((Number) roomData.get("destLongitude")).doubleValue();
                 }
                 if (roomData.get("place") != null) {
                     String p = String.valueOf(roomData.get("place")).trim();
@@ -173,10 +173,10 @@ public class PromiseWaitingActivity extends AppCompatActivity {
                             ? ((Number) roomData.get("meetTime")).longValue()
                             : System.currentTimeMillis() + (15 * 60 * 1000L);
                     double lat = (roomData != null && roomData.get("destLat") instanceof Number)
-                            ? ((Number) roomData.get("destLat")).doubleValue()
+                            ? ((Number) roomData.get("destLatitude")).doubleValue()
                             : destLat;
                     double lng = (roomData != null && roomData.get("destLng") instanceof Number)
-                            ? ((Number) roomData.get("destLng")).doubleValue()
+                            ? ((Number) roomData.get("destLongitude")).doubleValue()
                             : destLng;
                     String pName = (roomData != null && roomData.get("place") != null)
                             ? String.valueOf(roomData.get("place")).trim()
@@ -193,10 +193,11 @@ public class PromiseWaitingActivity extends AppCompatActivity {
             public void onFailure(Exception e) {
                 runOnUiThread(() -> {
                     btnConfirmInfo.setEnabled(true);
-                    long fallbackTime = System.currentTimeMillis() + (15 * 60 * 1000L);
-                    LocationShareWaitingActivity.start(
-                            PromiseWaitingActivity.this, roomCode, fallbackTime, destLat, destLng, place
-                    );
+                    Toast.makeText(
+                            PromiseWaitingActivity.this,
+                            "약속 정보를 불러오지 못했어요. 다시 시도해주세요.",
+                            Toast.LENGTH_SHORT
+                    ).show();
                 });
             }
         });
@@ -206,22 +207,24 @@ public class PromiseWaitingActivity extends AppCompatActivity {
         if (roomCode == null || roomCode.isEmpty()) return;
 
         firebaseManager.listenRoomMembers(roomCode, memberList -> {
-            if (memberList == null || memberList.isEmpty()) return;
+            if (memberList == null) return;
 
             participants.clear();
+
             for (Object item : memberList) {
                 if (item instanceof Map) {
                     Object nickObj = ((Map<?, ?>) item).get("nickname");
+
                     if (nickObj != null) {
                         participants.add(String.valueOf(nickObj));
                     }
                 }
             }
-            if (!participants.isEmpty()) {
-                runOnUiThread(this::renderParticipants);
-            }
+
+            runOnUiThread(this::renderParticipants);
         });
     }
+
 
     @Override
     protected void onDestroy() {
