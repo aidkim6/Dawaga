@@ -165,7 +165,7 @@ public class FirstRunActivity extends AppCompatActivity {
                     .addOnFailureListener(error -> registration.status.setValue(Registration.Status.ERROR));
             return;
         }
-        new DawagaFirebaseManager().registerUser(value, new DawagaFirebaseManager.OnUserRegisteredListener() {
+        new DawagaFirebaseManager().registerUser(FirstRunActivity.this, value, new DawagaFirebaseManager.OnUserRegisteredListener() {
             @Override
             public void onSuccess(String id, String savedNickname) {
                 onNicknameSaved(id, savedNickname);

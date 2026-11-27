@@ -1,5 +1,8 @@
 package com.example.dawaga;
 
+import static android.content.Context.MODE_PRIVATE;
+import static android.content.Intent.getIntent;
+
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ActivityNotFoundException;
@@ -283,20 +286,59 @@ public class PromiseSetupActivity extends AppCompatActivity {
         map.moveCamera(CameraUpdateFactory.newCenterPosition(point, 16));
     }
 
+
     private void createPromise() {
-        if (selected == null || Boolean.TRUE.equals(state.saving.getValue())) return;
+        if (selected == null || Boolean.TRUE.equals(state.saving.getValue())) {
+            return;
+        }
+
         state.saving.setValue(true);
+
         String title = getIntent().getStringExtra("promise_title");
         String date = getIntent().getStringExtra("promise_date");
         String time = getIntent().getStringExtra("promise_time");
         String placeName = selected.name();
 
-        new DawagaFirebaseManager().createRoom(title, selected.latitude(), selected.longitude(),
-                getIntent().getLongExtra("meet_time", 0), new DawagaFirebaseManager.OnRoomCallback() {
+        // 현재 로그인한 사용자 ID = 방장 ID
+        SharedPreferences prefs =
+                getSharedPreferences("DawagaPrefs", MODE_PRIVATE);
+
+        String hostId = prefs.getString("userId", null);
+
+        if (hostId == null || hostId.trim().isEmpty()) {
+            state.saving.setValue(false);
+            state.failed.setValue(true);
+
+            Toast.makeText(
+                    this,
+                    "사용자 정보를 먼저 등록해 주세요.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        new DawagaFirebaseManager().createRoom(
+                title,
+                selected.latitude(),
+                selected.longitude(),
+                getIntent().getLongExtra("meet_time", 0),
+                hostId,
+                new DawagaFirebaseManager.OnRoomCallback() {
+
                     @Override
                     public void onSuccess(Map<String, Object> roomData) {
-                        String createdCode = (String) roomData.get("roomCode");
-                        saveCreatedPromiseToPrefs(createdCode, title, date, time, placeName);
+                        String createdCode =
+                                (String) roomData.get("roomCode");
+
+                        saveCreatedPromiseToPrefs(
+                                createdCode,
+                                title,
+                                date,
+                                time,
+                                placeName
+                        );
+
                         state.roomCode.setValue(createdCode);
                         state.saving.setValue(false);
                     }
@@ -306,8 +348,10 @@ public class PromiseSetupActivity extends AppCompatActivity {
                         state.saving.setValue(false);
                         state.failed.setValue(true);
                     }
-                });
+                }
+        );
     }
+
 
     private void saveCreatedPromiseToPrefs(String code, String title, String date, String time, String place) {
         if (code == null || code.trim().isEmpty()) return;

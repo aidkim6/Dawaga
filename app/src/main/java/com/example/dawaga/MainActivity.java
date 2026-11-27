@@ -140,7 +140,22 @@ public class MainActivity extends AppCompatActivity {
         if (btnCreateRoomMain != null) {
             btnCreateRoomMain.setOnClickListener(v -> {
                 long meetTime = System.currentTimeMillis() + 3600000;
-                firebaseManager.createRoom("성신여대 모임", 37.5926, 127.0164, meetTime, new DawagaFirebaseManager.OnRoomCallback() {
+                String hostId = getSharedPreferences(
+                        "DawagaPrefs", MODE_PRIVATE
+                ).getString("userId", null);
+
+                if (hostId == null) {
+                    Toast.makeText(this, "먼저 닉네임을 등록해주세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                firebaseManager.createRoom(
+                        "성신여대 모임",
+                        37.5926,
+                        127.0164,
+                        meetTime,
+                        hostId,
+                        new DawagaFirebaseManager.OnRoomCallback() {
                     @Override
                     public void onSuccess(Map<String, Object> roomData) {
                         currentRoomCode = (String) roomData.get("roomCode");
@@ -335,34 +350,43 @@ public class MainActivity extends AppCompatActivity {
 
         loadSavedUserProfile();
 
+
         if (btnRegister != null) {
             btnRegister.setOnClickListener(v -> {
                 String nickname = etNickname.getText().toString().trim();
+
                 if (nickname.isEmpty()) {
                     tvUserInfo.setText("등록할 닉네임을 입력해주세요.");
                     return;
                 }
 
-                firebaseManager.registerUser(nickname, new DawagaFirebaseManager.OnUserRegisteredListener() {
-                    @Override
-                    public void onSuccess(String userId, String savedNickname) {
-                        prefs.edit()
-                                .putString("userId", userId)
-                                .putString("nickname", savedNickname)
-                                .apply();
+                firebaseManager.registerUser(
+                        MainActivity.this,
+                        nickname,
+                        new DawagaFirebaseManager.OnUserRegisteredListener() {
+                            @Override
+                            public void onSuccess(String userId, String savedNickname) {
+                                prefs.edit()
+                                        .putString("userId", userId)
+                                        .putString("nickname", savedNickname)
+                                        .apply();
 
-                        loadSavedUserProfile();
-                        Log.d(TAG, "신규 등록 -> userId: " + userId + ", nickname: " + savedNickname);
-                    }
+                                loadSavedUserProfile();
 
-                    @Override
-                    public void onFailure(Exception e) {
-                        tvUserInfo.setText("등록 실패: " + e.getMessage());
-                        Log.e(TAG, "등록 실패", e);
-                    }
-                });
+                                Log.d(TAG, "신규 등록 -> userId: "
+                                        + userId + ", nickname: " + savedNickname);
+                            }
+
+                            @Override
+                            public void onFailure(Exception e) {
+                                tvUserInfo.setText("등록 실패: " + e.getMessage());
+                                Log.e(TAG, "등록 실패", e);
+                            }
+                        }
+                );
             });
         }
+
 
         if (btnRename != null) {
             btnRename.setOnClickListener(v -> {
@@ -397,7 +421,20 @@ public class MainActivity extends AppCompatActivity {
         if (btnCreateRoomSoyeon != null) {
             btnCreateRoomSoyeon.setOnClickListener(v -> {
                 long defaultMeetTime = System.currentTimeMillis() + TEN_MINUTES_MILLIS;
-                firebaseManager.createRoom("성신여대 모임", 37.5926, 127.0164, defaultMeetTime, new DawagaFirebaseManager.OnRoomCallback() {
+                String hostId = prefs.getString("userId", null);
+
+                if (hostId == null) {
+                    Toast.makeText(this, "먼저 닉네임을 등록해주세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                firebaseManager.createRoom(
+                        "성신여대 모임",
+                        37.5926,
+                        127.0164,
+                        defaultMeetTime,
+                        hostId,
+                        new DawagaFirebaseManager.OnRoomCallback() {
                     @Override
                     public void onSuccess(Map<String, Object> roomData) {
                         String roomCode = (String) roomData.get("roomCode");

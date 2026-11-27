@@ -256,7 +256,7 @@ public class ConfirmJoinActivity extends AppCompatActivity {
             return;
         }
 
-        firebaseManager.registerUser(savedNickname, new DawagaFirebaseManager.OnUserRegisteredListener() {
+        firebaseManager.registerUser(ConfirmJoinActivity.this, savedNickname, new DawagaFirebaseManager.OnUserRegisteredListener() {
             @Override
             public void onSuccess(String userId, String nickname) {
                 prefs.edit()

@@ -1,7 +1,6 @@
 
 package com.example.dawaga;
 
-import android.location.Location;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +33,6 @@ public class MemberStatusAdapter
             double destinationLng,
             String currentUserId
     ) {
-
         this.destinationLat = destinationLat;
         this.destinationLng = destinationLng;
         this.currentUserId = currentUserId;
@@ -44,7 +42,6 @@ public class MemberStatusAdapter
     public void updateMembers(
             List<Map<String, Object>> members
     ) {
-
         memberList.clear();
 
         if (members != null) {
@@ -119,17 +116,12 @@ public class MemberStatusAdapter
             return Double.MAX_VALUE;
         }
 
-        float[] results = new float[1];
-
-        Location.distanceBetween(
+        return LocationRules.distanceMeters(
                 latitude,
                 longitude,
                 destinationLat,
-                destinationLng,
-                results
+                destinationLng
         );
-
-        return results[0];
     }
 
     @NonNull
@@ -220,13 +212,9 @@ public class MemberStatusAdapter
                         LocationRules.formatDistance(distance)
                 );
 
-                // 분당 80m 기준 예상 시간
-                int estimatedMinutes = Math.max(
-                        1,
-                        (int) Math.floor(
-                                distance / LocationRules.WALKING_METERS_PER_MIN
-                        )
-                );
+                // 공통 예상 도착 시간 계산
+                int estimatedMinutes =
+                        LocationRules.estimateMinutes(distance);
 
                 holder.tvArrivalStatus.setText(
                         estimatedMinutes + "분"
